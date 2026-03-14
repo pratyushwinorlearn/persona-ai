@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@andresaya/edge-tts": "^1.8.0",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.13.5",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "express": "^4.21.2",
+    "fluent-ffmpeg": "^2.1.3",
+    "groq-sdk": "^0.37.0",
+    "openai": "^6.21.0",
+    "prisma": "^5.22.0"
+  }
+}

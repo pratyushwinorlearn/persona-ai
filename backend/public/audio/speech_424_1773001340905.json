@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "soundFile": "C:\\Users\\praty\\OneDrive\\Desktop\\ai-interviewer\\backend\\public\\audio\\speech_424_1773001340905.wav",
+    "duration": 5.72
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.17, "value": "X" },
+    { "start": 0.17, "end": 0.24, "value": "B" },
+    { "start": 0.24, "end": 0.31, "value": "C" },
+    { "start": 0.31, "end": 0.38, "value": "E" },
+    { "start": 0.38, "end": 0.52, "value": "F" },
+    { "start": 0.52, "end": 0.59, "value": "E" },
+    { "start": 0.59, "end": 0.94, "value": "B" },
+    { "start": 0.94, "end": 1.11, "value": "X" },
+    { "start": 1.11, "end": 1.17, "value": "B" },
+    { "start": 1.17, "end": 1.37, "value": "C" },
+    { "start": 1.37, "end": 1.48, "value": "A" },
+    { "start": 1.48, "end": 1.54, "value": "C" },
+    { "start": 1.54, "end": 1.80, "value": "B" },
+    { "start": 1.80, "end": 1.94, "value": "C" },
+    { "start": 1.94, "end": 2.08, "value": "B" },
+    { "start": 2.08, "end": 2.15, "value": "C" },
+    { "start": 2.15, "end": 2.43, "value": "B" },
+    { "start": 2.43, "end": 2.52, "value": "A" },
+    { "start": 2.52, "end": 2.60, "value": "C" },
+    { "start": 2.60, "end": 2.81, "value": "E" },
+    { "start": 2.81, "end": 2.88, "value": "C" },
+    { "start": 2.88, "end": 5.72, "value": "X" }
+  ]
+}
