@@ -13,7 +13,7 @@ async function request(url, body) {
     const res = await fetch(url, {
       method: "POST",
       headers,
-      credentials: "include", 
+      
       body: JSON.stringify(body)
     });
 
@@ -40,8 +40,8 @@ async function get(url) {
   try {
     const res = await fetch(url, { 
       method: "GET",
-      headers,
-      credentials: "include" 
+      headers
+      
     });
 
     if (!res.ok) {
