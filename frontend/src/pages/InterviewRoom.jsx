@@ -545,7 +545,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   const [camOn, setCamOn]                 = useState(true);
   const [questionNumber, setQuestionNumber] = useState(1);
   const nodIntervalRef                    = useRef(null);
-
+  const [streamUrl, setStreamUrl] = useState("http://localhost"); // Fallback to localhost
   // Resize state
   const [leftWidth, setLeftWidth] = useState(62);
   const isDragging  = useRef(false);
@@ -573,7 +573,21 @@ export default function InterviewRoom({ interviewData, onFinish }) {
       streamRef.current.getVideoTracks().forEach(t => t.enabled = camOn);
     }
   }, [camOn]);
+  useEffect(() => {
+  const fetchStreamUrl = async () => {
+    try {
+      const data = await api.getPixelStreamingUrl();
+      if (data && data.url) {
+        console.log("🚀 Payton Stream URL:", data.url);
+        setStreamUrl(data.url);
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch stream URL:", err);
+    }
+  };
 
+  fetchStreamUrl();
+}, []);
   // Play initial question on load
   useEffect(() => {
     if (interviewData.audioUrl && interviewData.lipSyncTimes) {
@@ -792,7 +806,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
 
               {/* Payton pixel streaming */}
               <iframe
-                src="http://localhost"
+                src={streamUrl}
                 title="Payton"
                 style={{
                   position: "absolute", inset: 0,

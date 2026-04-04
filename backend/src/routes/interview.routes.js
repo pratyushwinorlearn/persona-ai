@@ -163,7 +163,10 @@ router.post("/set-ps-url", (req, res) => {
   res.json({ ok: true });
 });
 
-router.get("/ps-url", (req, res) => {
-  res.json({ url: pixelStreamingUrl });
+router.post("/ps-url", (req, res) => {
+  const { url } = req.body;
+  psUrl = url; // Update the global variable
+  console.log("Updated Global PS URL to:", psUrl);
+  res.json({ status: "ok" });
 });
 export default router;
