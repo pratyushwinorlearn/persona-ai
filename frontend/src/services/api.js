@@ -9,23 +9,18 @@ async function request(url, body) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body)
-    });
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body)
+  });
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Server error");
-    }
-
-    return await res.json();
-  } catch (error) {
-    alert(`FETCH POST FAILED!\nURL: ${url}\nError: ${error.message}`);
-    throw error;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Server error");
   }
+
+  return res.json();
 }
 
 async function get(url) {
@@ -33,22 +28,17 @@ async function get(url) {
   const token = localStorage.getItem("token");
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  try {
-    const res = await fetch(url, {
-      method: "GET",
-      headers
-    });
+  const res = await fetch(url, {
+    method: "GET",
+    headers
+  });
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Server error");
-    }
-
-    return await res.json();
-  } catch (error) {
-    alert(`FETCH GET FAILED!\nURL: ${url}\nError: ${error.message}`);
-    throw error;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Server error");
   }
+
+  return res.json();
 }
 
 export default {
