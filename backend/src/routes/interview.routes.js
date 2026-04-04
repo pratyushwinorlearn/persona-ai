@@ -155,18 +155,23 @@ router.post("/set-audio", (req, res) => {
 router.get("/pending-audio", (req, res) => {
   res.json({ url: pendingAudioUrl });
 });
+// Variable to store the public Ngrok URL in memory
 let pixelStreamingUrl = "http://localhost";
 
+// 1. POST: Used by start-session.js to PUSH the URL to the server
 router.post("/set-ps-url", (req, res) => {
   const { url } = req.body;
-  pixelStreamingUrl = url;
-  res.json({ ok: true });
+  if (url) {
+    pixelStreamingUrl = url;
+    console.log("✅ PS URL updated to:", pixelStreamingUrl);
+    return res.json({ ok: true });
+  }
+  res.status(400).json({ error: "No URL provided" });
 });
 
-router.post("/ps-url", (req, res) => {
-  const { url } = req.body;
-  psUrl = url; // Update the global variable
-  console.log("Updated Global PS URL to:", psUrl);
-  res.json({ status: "ok" });
+// 2. GET: Used by the Frontend (JSX) to FETCH the URL
+// Change this from .post to .get
+router.get("/ps-url", (req, res) => {
+  res.json({ url: pixelStreamingUrl });
 });
 export default router;

@@ -578,16 +578,17 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     try {
       const data = await api.getPixelStreamingUrl();
       if (data && data.url) {
-        console.log("🚀 Payton Stream URL:", data.url);
+        console.log("🚀 Payton Stream URL Received:", data.url);
         setStreamUrl(data.url);
       }
     } catch (err) {
+      // If this alerts, it means the route is still 404
       console.error("❌ Failed to fetch stream URL:", err);
     }
   };
 
   fetchStreamUrl();
-}, []);
+}, []); // Runs once when the room opens
   // Play initial question on load
   useEffect(() => {
     if (interviewData.audioUrl && interviewData.lipSyncTimes) {
