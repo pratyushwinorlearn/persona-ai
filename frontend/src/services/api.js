@@ -1,6 +1,6 @@
-// Hardcoded for production!
 const API = "https://persona-ai-production-ac95.up.railway.app/api/interview";
 const AUTH = "https://persona-ai-production-ac95.up.railway.app/api/auth";
+
 async function request(url, body) {
   const headers = { "Content-Type": "application/json" };
 
@@ -13,7 +13,6 @@ async function request(url, body) {
     const res = await fetch(url, {
       method: "POST",
       headers,
-      credentials: "include",
       body: JSON.stringify(body)
     });
 
@@ -24,7 +23,6 @@ async function request(url, body) {
 
     return await res.json();
   } catch (error) {
-    // 🚨 DEBUG TRAP: Forces the phone to show the silent error
     alert(`FETCH POST FAILED!\nURL: ${url}\nError: ${error.message}`);
     throw error;
   }
@@ -33,33 +31,27 @@ async function request(url, body) {
 async function get(url) {
   const headers = {};
   const token = localStorage.getItem("token");
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   try {
-    const res = await fetch(url, { 
+    const res = await fetch(url, {
       method: "GET",
-      headers,
-      credentials: "include"
-      
+      headers
     });
 
     if (!res.ok) {
       const text = await res.text();
       throw new Error(text || "Server error");
     }
-    
+
     return await res.json();
   } catch (error) {
-    // 🚨 DEBUG TRAP: Forces the phone to show the silent error
     alert(`FETCH GET FAILED!\nURL: ${url}\nError: ${error.message}`);
     throw error;
   }
 }
 
 export default {
-  // Interview
   startInterview(jobRole, experienceLevel, questionLimit) {
     return request(`${API}/start`, { jobRole, experienceLevel, questionLimit });
   },
@@ -84,7 +76,6 @@ export default {
     return get(`${API}/ps-url`);
   },
 
-  // Auth
   login(email, password) {
     return request(`${AUTH}/login`, { email, password });
   },

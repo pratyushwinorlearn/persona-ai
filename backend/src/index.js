@@ -19,10 +19,10 @@ app.set("trust proxy", 1);
 
 // Delete all the strict origins and credentials, just use this one line:
 app.use(cors({
-  origin: "https://persona-ai.vercel.app", // NO WILDCARD. Use your exact frontend URL.
+  origin: "https://persona-ai.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true // Match the frontend's request mode
+  credentials: false
 }));
 
 app.use(express.json());
