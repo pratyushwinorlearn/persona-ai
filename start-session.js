@@ -6,7 +6,7 @@ import fetch from "node-fetch";
 const BACKEND = "https://persona-ai-production-ac95.up.railway.app/api/interview";
 // const BACKEND = "http://localhost:8000/api/interview";
 
-const ngrok = spawn("ngrok", ["http", "80", "--log=stdout", "--log-level=info"]);
+const ngrok = spawn("ngrok", ["http", "8081", "--log=stdout", "--log-level=info"]);
 
 ngrok.stdout.on("data", async (data) => {
   const str = data.toString();
