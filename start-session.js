@@ -6,11 +6,8 @@ const BACKEND = "https://persona-ai-production-ac95.up.railway.app/api/interview
 // We use Cloudflared instead of Ngrok. Make sure cloudflared.exe is in the exact same folder as this script!
 // Change "localhost" to "127.0.0.1"
 // We force Cloudflare to disguise its requests as 127.0.0.1 so Unreal accepts them!
-const tunnel = spawn("./cloudflared.exe", [
-  "tunnel", 
-  "--url", "http://127.0.0.1:8081",
-  "--http-host-header", "127.0.0.1"
-]);
+// Keep it exactly to these 3 arguments. No extra flags!
+const tunnel = spawn("./cloudflared.exe", ["tunnel", "--url", "http://127.0.0.1:8081"]);
 // Cloudflare outputs its connection logs to stderr, not stdout!
 tunnel.stderr.on("data", async (data) => {
   const str = data.toString();
