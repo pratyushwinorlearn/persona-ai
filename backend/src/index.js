@@ -17,19 +17,8 @@ const app = express();
 // Without this, mobile browsers will reject secure authentication cookies!
 app.set("trust proxy", 1);
 
-app.use(cors({
-  // Dynamic origin that allows ANY localhost and ANY vercel.app domain
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin.startsWith("http://localhost") || origin.includes("vercel.app")) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
+// Delete all the strict origins and credentials, just use this one line:
+app.use(cors());
 
 app.use(express.json());
 
