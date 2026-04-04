@@ -12,6 +12,7 @@ async function request(url, body) {
   const res = await fetch(url, {
     method: "POST",
     headers,
+    credentials: "include", // 👈 FIX: Tells mobile browsers this is a secure, authenticated request
     body: JSON.stringify(body)
   });
 
@@ -26,9 +27,16 @@ async function request(url, body) {
 async function get(url) {
   const headers = {};
   const token = localStorage.getItem("token");
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
-  const res = await fetch(url, { headers });
+  const res = await fetch(url, { 
+    method: "GET",
+    headers,
+    credentials: "include" // 👈 FIX: Added here as well for GET requests
+  });
+
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || "Server error");
