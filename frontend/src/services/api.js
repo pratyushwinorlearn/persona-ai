@@ -9,19 +9,25 @@ async function request(url, body) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    credentials: "include", // 👈 FIX: Tells mobile browsers this is a secure, authenticated request
-    body: JSON.stringify(body)
-  });
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      credentials: "include", 
+      body: JSON.stringify(body)
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Server error");
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Server error");
+    }
+
+    return await res.json();
+  } catch (error) {
+    // 🚨 DEBUG TRAP: Forces the phone to show the silent error
+    alert(`FETCH POST FAILED!\nURL: ${url}\nError: ${error.message}`);
+    throw error;
   }
-
-  return res.json();
 }
 
 async function get(url) {
@@ -31,17 +37,24 @@ async function get(url) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, { 
-    method: "GET",
-    headers,
-    credentials: "include" // 👈 FIX: Added here as well for GET requests
-  });
+  try {
+    const res = await fetch(url, { 
+      method: "GET",
+      headers,
+      credentials: "include" 
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Server error");
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Server error");
+    }
+    
+    return await res.json();
+  } catch (error) {
+    // 🚨 DEBUG TRAP: Forces the phone to show the silent error
+    alert(`FETCH GET FAILED!\nURL: ${url}\nError: ${error.message}`);
+    throw error;
   }
-  return res.json();
 }
 
 export default {

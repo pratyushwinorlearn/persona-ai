@@ -18,12 +18,16 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://persona-ai.vercel.app" 
-  ],
+  // Dynamic origin that allows ANY localhost and ANY vercel.app domain
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (origin.startsWith("http://localhost") || origin.includes("vercel.app")) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"], // 👈 THE MISSING PIECE!
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
