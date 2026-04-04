@@ -20,10 +20,10 @@ app.set("trust proxy", 1);
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://persona-ai.vercel.app" // Your exact Vercel domain
+    "https://persona-ai.vercel.app" 
   ],
-  // 2. THE PREFLIGHT FIX: Mobile browsers send an "OPTIONS" request before logging in.
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"], // 👈 THE MISSING PIECE!
   credentials: true
 }));
 
