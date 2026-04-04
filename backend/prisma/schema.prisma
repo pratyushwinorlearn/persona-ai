@@ -3,41 +3,67 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Supabase requires a direct URL for schema migrations
+  directUrl = env("DIRECT_URL") 
 }
 
 model User {
   id        String   @id @default(uuid())
-  jobRole   String
-  level     String
-  answers   Answer[]
+  name      String
+  email     String   @unique
+  password  String
+  
+  // Made optional so registration works before an interview starts
+  jobRole   String?  
+  level     String?  
+  isVerified    Boolean  @default(false)
+  verifyToken   String?
+  answers    Answer[]
+  otp           String?  
+  otpExpires    DateTime?
+  // 🔴 THIS IS THE MISSING LINE: Telling User it has many InterviewHistories
+  interviews InterviewHistory[] 
+
   createdAt DateTime @default(now())
 }
 
 model InterviewHistory {
-  id              Int      @id @default(autoincrement())
-  jobRole         String
-  currentQuestion String
-  questionCount   Int      @default(1)
-  questionLimit   Int @default(5)
-  isCompleted     Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  id                   Int      @id @default(autoincrement())
+  
+  userId               String?
+  user                 User?    @relation(fields: [userId], references: [id])
+  
+  jobRole              String
+  currentQuestion      String
+  questionCount        Int      @default(1)
+  questionLimit        Int      @default(5)
+  isCompleted          Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  experienceLevel      String?
+  pendingCrossQuestion Boolean  @default(false)
+  crossQuestionTopic   String?
+  introCompleted       Boolean  @default(false)
+
+  // Added this so your new history dashboard has a score to show!
+  overallScore         Int?     
 
   answers Answer[]
 }
 
 model Answer {
-  id           Int      @id @default(autoincrement())
-  interviewId  Int
-  userId       String
-  question     String
-  answer       String
-  isCorrect    Boolean
-  feedback     String
-  emotion      String
-  weakTopic    String?
-  createdAt    DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  interviewId Int
+  userId      String
+  question    String
+  answer      String
+  isCorrect   Boolean
+  feedback    String
+  emotion     String
+  weakTopic   String?
+  createdAt   DateTime @default(now())
+  isIntro     Boolean  @default(false)
 
   interview InterviewHistory @relation(fields: [interviewId], references: [id])
   user      User             @relation(fields: [userId], references: [id])
