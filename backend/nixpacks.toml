@@ -1,6 +1,6 @@
 [phases.setup]
 nixPkgs = ["nodejs_20", "npm-9_x"]
-
+nixPkgs = ["...", "ffmpeg"]
 [phases.build]
 cmds = ["cd backend && npm install && npx prisma generate"]
 

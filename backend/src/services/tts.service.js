@@ -3,7 +3,7 @@ import path from "path";
 import { EdgeTTS } from "@andresaya/edge-tts";
 import { execSync } from "child_process";
 
-const FFMPEG = "C:\\Users\\praty\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe";
+const FFMPEG = "ffmpeg";
 
 const audioCache = new Map();
 
