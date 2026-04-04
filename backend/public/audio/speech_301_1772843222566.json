@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "soundFile": "C:\\Users\\praty\\OneDrive\\Desktop\\ai-interviewer\\backend\\public\\audio\\speech_301_1772843222566.wav",
+    "duration": 7.83
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.17, "value": "X" },
+    { "start": 0.17, "end": 0.30, "value": "C" },
+    { "start": 0.30, "end": 0.58, "value": "F" },
+    { "start": 0.58, "end": 0.65, "value": "B" },
+    { "start": 0.65, "end": 0.73, "value": "A" },
+    { "start": 0.73, "end": 0.80, "value": "H" },
+    { "start": 0.80, "end": 0.87, "value": "C" },
+    { "start": 0.87, "end": 1.22, "value": "B" },
+    { "start": 1.22, "end": 1.29, "value": "G" },
+    { "start": 1.29, "end": 1.85, "value": "B" },
+    { "start": 1.85, "end": 2.06, "value": "C" },
+    { "start": 2.06, "end": 2.13, "value": "B" },
+    { "start": 2.13, "end": 2.20, "value": "C" },
+    { "start": 2.20, "end": 2.27, "value": "B" },
+    { "start": 2.27, "end": 2.34, "value": "C" },
+    { "start": 2.34, "end": 2.55, "value": "B" },
+    { "start": 2.55, "end": 2.62, "value": "C" },
+    { "start": 2.62, "end": 2.69, "value": "G" },
+    { "start": 2.69, "end": 2.83, "value": "E" },
+    { "start": 2.83, "end": 2.90, "value": "C" },
+    { "start": 2.90, "end": 3.11, "value": "H" },
+    { "start": 3.11, "end": 3.25, "value": "C" },
+    { "start": 3.25, "end": 3.39, "value": "B" },
+    { "start": 3.39, "end": 3.46, "value": "G" },
+    { "start": 3.46, "end": 3.69, "value": "X" },
+    { "start": 3.69, "end": 3.86, "value": "B" },
+    { "start": 3.86, "end": 3.93, "value": "F" },
+    { "start": 3.93, "end": 4.00, "value": "C" },
+    { "start": 4.00, "end": 4.08, "value": "A" },
+    { "start": 4.08, "end": 4.15, "value": "B" },
+    { "start": 4.15, "end": 4.43, "value": "F" },
+    { "start": 4.43, "end": 4.92, "value": "B" },
+    { "start": 4.92, "end": 4.99, "value": "G" },
+    { "start": 4.99, "end": 7.83, "value": "X" }
+  ]
+}
