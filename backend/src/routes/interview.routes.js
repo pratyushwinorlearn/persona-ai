@@ -155,5 +155,15 @@ router.post("/set-audio", (req, res) => {
 router.get("/pending-audio", (req, res) => {
   res.json({ url: pendingAudioUrl });
 });
+let pixelStreamingUrl = "http://localhost";
 
+router.post("/set-ps-url", (req, res) => {
+  const { url } = req.body;
+  pixelStreamingUrl = url;
+  res.json({ ok: true });
+});
+
+router.get("/ps-url", (req, res) => {
+  res.json({ url: pixelStreamingUrl });
+});
 export default router;
