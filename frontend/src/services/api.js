@@ -1,6 +1,6 @@
-const API = import.meta.env.VITE_API_URL || "http://localhost:8000/api/interview";
-const AUTH = import.meta.env.VITE_AUTH_URL || "http://localhost:8000/api/auth";
-
+// Hardcoded for production!
+const API = "https://persona-ai-production-ac95.up.railway.app/api/interview";
+const AUTH = "https://persona-ai-production-ac95.up.railway.app/api/auth";
 async function request(url, body) {
   const headers = { "Content-Type": "application/json" };
 
