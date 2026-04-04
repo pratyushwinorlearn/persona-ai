@@ -667,7 +667,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     lipSyncTimeouts.current.forEach(t => clearTimeout(t));
     lipSyncTimeouts.current = [];
     if (nodIntervalRef.current) clearInterval(nodIntervalRef.current);
-    const fullUrl = url.startsWith('http') ? url : `http://localhost:8000${url}`;
+    const fullUrl = url.startsWith('http') ? url : `https://persona-ai-production-ac95.up.railway.app${url}`;
     const audio   = new Audio(fullUrl);
     setIsSpeaking(true);
     setUserTurn(false);

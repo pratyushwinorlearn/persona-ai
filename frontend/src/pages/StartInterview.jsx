@@ -569,11 +569,11 @@ export default function StartInterview({ onStart }) {
     try {
       // A. Handle OTP Verification
       if (showOtpInput) {
-        const res = await fetch(`http://localhost:8000/api/auth/verify-otp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: authEmail, otp })
-        });
+        const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/verify-otp`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: authEmail, otp })
+}); 
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.error);
@@ -590,11 +590,11 @@ export default function StartInterview({ onStart }) {
       const payload = { email: authEmail, password: authPass };
       if (authMode === 'register') payload.name = authName;
 
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const res = await fetch(`https://persona-ai-production-ac95.up.railway.app${endpoint}`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+});
 
       const data = await res.json();
 
@@ -623,9 +623,9 @@ export default function StartInterview({ onStart }) {
     setSelectedInterview(null); 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/auth/history`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/history`, {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
       if(res.ok) {
         const data = await res.json();
         setHistoryData(data);
@@ -644,9 +644,9 @@ export default function StartInterview({ onStart }) {
     setSelectedInterview({ id }); 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/auth/history/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/history/${id}`, {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
       if(res.ok) {
         const data = await res.json();
         setSelectedInterview(data);
