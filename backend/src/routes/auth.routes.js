@@ -60,20 +60,15 @@ router.post('/register', async (req, res) => {
       }
     });
 
-    const mailOptions = {
-      from: `"Persona AI" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `${otp} is your Persona AI verification code`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background-color: #000; color: #fff; border-radius: 12px; text-align: center; border: 1px solid #333;">
-          <h2 style="color: #7DF9C2; letter-spacing: 2px;">VERIFICATION CODE</h2>
-          <p style="color: #aaa; font-size: 16px;">Enter the code below to activate your account.</p>
-          <div style="font-size: 48px; font-weight: bold; letter-spacing: 10px; margin: 30px 0; color: #fff;">${otp}</div>
-          <p style="color: #666; font-size: 12px;">This code expires in 10 minutes.</p>
-        </div>
-      `
-    };
+    // 🔴 DEV MODE BYPASS: Instead of sending the email and timing out, 
+    // we print the OTP to the Railway logs and immediately tell the frontend it succeeded.
+    console.log(`\n🚨 [DEV MODE] User ${email} registered.`);
+    console.log(`🚨 [DEV MODE] Their 6-digit verification code is: ${otp}\n`);
+    
+    return res.json({ message: "A 6-digit code has been sent to your email." });
 
+    /* --- REAL EMAIL CODE COMMENTED OUT UNTIL GMAIL APP PASSWORD IS SET UP ---
+    const mailOptions = { ... };
     try {
       await transporter.sendMail(mailOptions);
       res.json({ message: "A 6-digit code has been sent to your email." });
@@ -81,6 +76,7 @@ router.post('/register', async (req, res) => {
       console.error("Mail Error:", mailError.message);
       return res.status(500).json({ error: "Failed to send email. Check backend terminal for details." });
     }
+    */
 
   } catch (error) {
     console.error("Registration Error:", error);
@@ -111,33 +107,15 @@ router.post('/verify-otp', async (req, res) => {
       data: { isVerified: true, otp: null, otpExpires: null }
     });
 
-    // 🔴 NEW: Shoot off the Welcome Email! 
-    // We don't 'await' this so the user logs in instantly without waiting for the email to send.
-    const welcomeMailOptions = {
-      from: `"Persona AI" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: 'Welcome to Persona AI! 🚀',
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #0d0d0d; color: #ffffff; border-radius: 12px; border: 1px solid #222;">
-          <h1 style="color: #7DF9C2; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;">Welcome, ${user.name}!</h1>
-          <p style="font-size: 16px; line-height: 1.7; color: #cccccc;">
-            Your email has been successfully verified, and your account is now active.
-          </p>
-          <p style="font-size: 16px; line-height: 1.7; color: #cccccc; margin-bottom: 30px;">
-            Payton is ready when you are. Head back to the dashboard to start your first dynamic interview simulation.
-          </p>
-          <div style="padding-top: 20px; border-top: 1px solid #333;">
-            <p style="font-size: 12px; color: #666;">
-              © ${new Date().getFullYear()} Persona AI. All rights reserved.
-            </p>
-          </div>
-        </div>
-      `
-    };
-
+    // 🔴 DEV MODE BYPASS: Commenting out the welcome email to prevent background timeouts
+    /*
+    const welcomeMailOptions = { ... };
     transporter.sendMail(welcomeMailOptions).catch(err => {
       console.error("Failed to send welcome email:", err);
     });
+    */
+
+    console.log(`✅ [DEV MODE] User ${email} successfully verified and logged in!`);
 
     // Log the user in
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
