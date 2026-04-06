@@ -10,14 +10,18 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_ai_interviewer_key";
 
 // The Bulletproof Cloud Config
+// The STARTTLS Fallback Config
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465, // Explicitly force the secure SMTP port
-  secure: true, // Use SSL/TLS
+  port: 587,          // Switched to 587
+  secure: false,      // MUST be false when using 587
+  requireTLS: true,   // Forces encryption via STARTTLS
   auth: { 
     user: process.env.EMAIL_USER, 
     pass: process.env.EMAIL_PASS 
-  }
+  },
+  logger: true,       // 🔴 ADD THIS: Prints detailed email logs to Railway terminal
+  debug: true         // 🔴 ADD THIS: Shows the exact SMTP traffic
 });
 
 // --- 1. REGISTER (Sends OTP) ---
