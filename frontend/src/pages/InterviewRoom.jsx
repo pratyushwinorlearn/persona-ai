@@ -1,9 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import api from "../services/api";
 
-const BACKEND = "https://persona-ai-production-ac95.up.railway.app";
-
-/* ── SVG DOODLES ── */
+/* ── SVG DOODLES (matching StartInterview) ── */
 const DoodleCircle = ({ size = 120, opacity = 0.12, className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width={size} height={size} viewBox="0 0 100 100" fill="none" style={style}>
     <circle cx="50" cy="50" r="44" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity={opacity} />
@@ -36,7 +34,8 @@ const DoodleWave = ({ className = "", style = {} }) => (
 const DoodleGrid = ({ className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width="120" height="120" viewBox="0 0 120 120" fill="none" style={style}>
     {[0,1,2].map(row => [0,1,2].map(col => (
-      <rect key={`${row}-${col}`} x={col*40+4} y={row*40+4} width="32" height="32" stroke="white" strokeWidth="0.5" opacity="0.08" rx="3" />
+      <rect key={`${row}-${col}`} x={col*40+4} y={row*40+4} width="32" height="32"
+        stroke="white" strokeWidth="0.5" opacity="0.08" rx="3" />
     )))}
     {[0,1,2].map(row => [0,1,2].map(col => (
       <circle key={`d-${row}-${col}`} cx={col*40+20} cy={row*40+20} r="1.5" fill="white" opacity="0.14" />
@@ -81,118 +80,6 @@ const CSS = `
 
 .doodle { pointer-events: none; flex-shrink: 0; }
 
-/* ── COUNTDOWN SCREEN ── */
-.ir-countdown-screen {
-  position: fixed; inset: 0;
-  background: #000;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 10000;
-  gap: 32px;
-}
-
-.ir-countdown-glow {
-  position: absolute;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(125,249,194,0.06) 0%, transparent 65%);
-  pointer-events: none;
-  animation: glowPulse 3s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%,100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-
-.ir-countdown-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 4px;
-  text-transform: uppercase; color: var(--a);
-  position: relative; z-index: 2;
-}
-
-.ir-countdown-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 160px; line-height: 1;
-  color: var(--w);
-  position: relative; z-index: 2;
-  animation: countPulse 1s ease-in-out infinite;
-}
-
-@keyframes countPulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(0.96); }
-}
-
-.ir-countdown-sub {
-  font-size: 14px; font-weight: 300;
-  color: var(--d); letter-spacing: 1px;
-  position: relative; z-index: 2;
-  text-align: center; max-width: 320px; line-height: 1.6;
-}
-
-.ir-countdown-bar-wrap {
-  width: 280px; height: 2px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 2px; overflow: hidden;
-  position: relative; z-index: 2;
-}
-
-.ir-countdown-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--a2), var(--a));
-  border-radius: 2px;
-  transition: width 1s linear;
-}
-
-.ir-countdown-skip {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px; letter-spacing: 3px;
-  color: var(--d); background: none;
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 10px 28px; border-radius: 2px;
-  cursor: pointer; transition: all 0.2s;
-  position: relative; z-index: 2;
-}
-
-.ir-countdown-skip:hover {
-  color: var(--w);
-  border-color: rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.05);
-}
-
-.ir-countdown-steps {
-  display: flex; gap: 24px;
-  position: relative; z-index: 2;
-}
-
-.ir-countdown-step {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 11px; font-weight: 500; letter-spacing: 1px;
-  color: var(--d);
-}
-
-.ir-countdown-step-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--a); opacity: 0.5;
-  animation: stepPulse 1.5s ease-in-out infinite;
-}
-
-.ir-countdown-step.active .ir-countdown-step-dot {
-  opacity: 1;
-  box-shadow: 0 0 8px var(--a);
-}
-
-.ir-countdown-step.active {
-  color: var(--a);
-}
-
-@keyframes stepPulse {
-  0%,100% { transform: scale(1); }
-  50% { transform: scale(1.4); }
-}
-
-/* ── TOP BAR ── */
 .ir-topbar {
   height: 52px;
   background: rgba(0,0,0,0.92);
@@ -287,6 +174,67 @@ const CSS = `
   background: radial-gradient(circle, rgba(125,249,194,0.04) 0%, transparent 65%);
   pointer-events: none;
   animation: glowPulse 5s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.12); opacity: 1; }
+}
+
+/* ── COUNTDOWN OVERLAY (inside payton area) ── */
+.ir-loading-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.82);
+  backdrop-filter: blur(8px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 30; gap: 20px;
+}
+
+.ir-loading-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--a);
+}
+
+.ir-loading-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 96px; line-height: 1; color: var(--w);
+  animation: cdPulse 1s ease-in-out infinite;
+}
+
+@keyframes cdPulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.94); }
+}
+
+.ir-loading-sub {
+  font-size: 12px; font-weight: 300; color: var(--d);
+  letter-spacing: 1px; text-align: center;
+  max-width: 220px; line-height: 1.6;
+}
+
+.ir-loading-bar-wrap {
+  width: 180px; height: 2px;
+  background: rgba(255,255,255,0.08); border-radius: 2px;
+  overflow: hidden;
+}
+
+.ir-loading-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--a2), var(--a));
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.ir-loading-skip {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--d);
+  background: none; border: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 20px; border-radius: 2px; cursor: pointer;
+  transition: all 0.2s; margin-top: 4px;
+}
+.ir-loading-skip:hover {
+  color: var(--w); border-color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.04);
 }
 
 .ir-status-pill {
@@ -627,20 +575,14 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   const [questionNumber, setQuestionNumber] = useState(1);
   const nodIntervalRef                      = useRef(null);
   const [streamUrl, setStreamUrl]           = useState(null);
-
-  // Countdown state
   const [countdown, setCountdown]           = useState(COUNTDOWN_TOTAL);
   const [isReady, setIsReady]               = useState(false);
-
-  // Resize state
-  const [leftWidth, setLeftWidth] = useState(62);
+  const [leftWidth, setLeftWidth]           = useState(62);
   const isDragging  = useRef(false);
   const startX      = useRef(0);
   const startWidth  = useRef(0);
-
-  // Camera
-  const videoRef  = useRef(null);
-  const streamRef = useRef(null);
+  const videoRef    = useRef(null);
+  const streamRef   = useRef(null);
 
   // Camera setup
   useEffect(() => {
@@ -677,7 +619,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     }
   }, [countdown, isReady]);
 
-  // Play initial audio when ready
+  // Play initial audio only when ready
   useEffect(() => {
     if (isReady && interviewData.audioUrl && interviewData.lipSyncTimes) {
       playAudioWithLipSync(
@@ -695,9 +637,9 @@ export default function InterviewRoom({ interviewData, onFinish }) {
 
   // Resize logic
   const onMouseDown = useCallback((e) => {
-    isDragging.current   = true;
-    startX.current       = e.clientX;
-    startWidth.current   = leftWidth;
+    isDragging.current = true;
+    startX.current     = e.clientX;
+    startWidth.current = leftWidth;
     document.body.style.cursor     = "col-resize";
     document.body.style.userSelect = "none";
   }, [leftWidth]);
@@ -772,7 +714,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     lipSyncTimeouts.current.forEach(t => clearTimeout(t));
     lipSyncTimeouts.current = [];
     if (nodIntervalRef.current) clearInterval(nodIntervalRef.current);
-    const fullUrl = url.startsWith('http') ? url : `${BACKEND}${url}`;
+    const fullUrl = url.startsWith('http') ? url : `https://persona-ai-production-ac95.up.railway.app${url}`;
     const audio   = new Audio(fullUrl);
     setIsSpeaking(true);
     setUserTurn(false);
@@ -853,58 +795,12 @@ export default function InterviewRoom({ interviewData, onFinish }) {
 
   const progress = ((COUNTDOWN_TOTAL - countdown) / COUNTDOWN_TOTAL) * 100;
 
-  // ── COUNTDOWN SCREEN ──
-  if (!isReady) {
-    return (
-      <>
-        <style>{CSS}</style>
-        <div className="ir-countdown-screen">
-          <div className="ir-countdown-glow" />
-
-          <div className="ir-countdown-label">Initializing Interview Session</div>
-
-          <div className="ir-countdown-number">{countdown}</div>
-
-          <div className="ir-countdown-bar-wrap">
-            <div className="ir-countdown-bar" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="ir-countdown-sub">
-            Payton is loading. Your interview will begin automatically.
-          </div>
-
-          <div className="ir-countdown-steps">
-            <div className={`ir-countdown-step ${countdown <= 16 ? "active" : ""}`}>
-              <div className="ir-countdown-step-dot" />
-              <span>Connecting</span>
-            </div>
-            <div className={`ir-countdown-step ${countdown <= 10 ? "active" : ""}`}>
-              <div className="ir-countdown-step-dot" />
-              <span>Loading Avatar</span>
-            </div>
-            <div className={`ir-countdown-step ${countdown <= 4 ? "active" : ""}`}>
-              <div className="ir-countdown-step-dot" />
-              <span>Ready</span>
-            </div>
-          </div>
-
-          <button
-            className="ir-countdown-skip"
-            onClick={() => setIsReady(true)}
-          >
-            Skip → Start Now
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  // ── MAIN INTERVIEW ROOM ──
   return (
     <>
       <style>{CSS}</style>
       <div className="ir-root">
 
+        {/* ── TOP BAR ── */}
         <div className="ir-topbar">
           <div className="ir-logo">persona.ai</div>
           <div className="ir-topbar-center">
@@ -917,11 +813,35 @@ export default function InterviewRoom({ interviewData, onFinish }) {
           </button>
         </div>
 
+        {/* ── BODY ── */}
         <div className="ir-body">
+
+          {/* LEFT — PAYTON */}
           <div className="ir-left" style={{ width: `${leftWidth}%` }}>
             <div className="ir-payton-area">
               <div className="ir-payton-glow" />
 
+              {/* ── COUNTDOWN OVERLAY — sits on top of payton area ── */}
+              {!isReady && (
+                <div className="ir-loading-overlay">
+                  <div className="ir-loading-label">Loading Payton</div>
+                  <div className="ir-loading-number">{countdown}</div>
+                  <div className="ir-loading-bar-wrap">
+                    <div className="ir-loading-bar" style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className="ir-loading-sub">
+                    Click "Play" in Pixel Streaming to connect Payton's video feed
+                  </div>
+                  <button
+                    className="ir-loading-skip"
+                    onClick={() => setIsReady(true)}
+                  >
+                    Skip → Start Now
+                  </button>
+                </div>
+              )}
+
+              {/* Status pill */}
               <div className={`ir-status-pill ${loading || isSpeaking ? "active" : ""}`}>
                 {loading ? (
                   <><span className="ir-status-dot" /> Processing answer...</>
@@ -932,6 +852,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 )}
               </div>
 
+              {/* Payton pixel streaming */}
               {streamUrl ? (
                 <iframe
                   src={streamUrl}
@@ -941,7 +862,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                     width: "100%", height: "100%",
                     border: "none", background: "#000"
                   }}
-                  allow="autoplay; fullscreen; microphone; camera; clipboard-write"
+                  allow="autoplay; fullscreen; display-capture; microphone; camera; clipboard-read; clipboard-write"
                 />
               ) : (
                 <div style={{
@@ -956,6 +877,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 </div>
               )}
 
+              {/* Speaking bars */}
               <div className={`ir-speaking ${isSpeaking ? "active" : ""}`}>
                 <div className="ir-speaking-bars">
                   {[1,2,3,4,5].map(i => <div key={i} className="ir-speaking-bar" />)}
@@ -963,6 +885,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 <span className="ir-speaking-text">Payton is speaking</span>
               </div>
 
+              {/* Name tag */}
               <div className="ir-nametag">
                 <div className="ir-nametag-name">Payton</div>
                 <div className="ir-nametag-sub">AI Interviewer · persona.ai</div>
@@ -971,6 +894,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               <DoodleCorner style={{ position:"absolute", top:60, left:14, opacity:0.4, pointerEvents:"none" }} />
               <DoodleCross  size={28} style={{ position:"absolute", bottom:80, right:170, opacity:0.25, pointerEvents:"none" }} />
 
+              {/* User PiP */}
               <div className="ir-pip">
                 {camOn ? (
                   <video ref={videoRef} autoPlay muted playsInline />
@@ -984,6 +908,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               </div>
             </div>
 
+            {/* CONTROLS */}
             <div className="ir-controls">
               <div style={{ position:"relative" }}>
                 <button className={`ctrl-btn ${micOn ? "" : "off"}`} onClick={() => setMicOn(m => !m)}>
@@ -1012,8 +937,10 @@ export default function InterviewRoom({ interviewData, onFinish }) {
             </div>
           </div>
 
+          {/* RESIZER */}
           <div className="ir-resizer" onMouseDown={onMouseDown} />
 
+          {/* RIGHT — INTERACTION */}
           <div className="ir-right">
             <div className="ir-right-header">
               <div className="ir-right-title">Interview Panel</div>
