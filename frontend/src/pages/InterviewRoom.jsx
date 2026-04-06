@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import api from "../services/api";
 
-/* ── SVG DOODLES (matching StartInterview) ── */
+const BACKEND = "https://persona-ai-production-ac95.up.railway.app";
+
+/* ── SVG DOODLES ── */
 const DoodleCircle = ({ size = 120, opacity = 0.12, className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width={size} height={size} viewBox="0 0 100 100" fill="none" style={style}>
     <circle cx="50" cy="50" r="44" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity={opacity} />
@@ -34,8 +36,7 @@ const DoodleWave = ({ className = "", style = {} }) => (
 const DoodleGrid = ({ className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width="120" height="120" viewBox="0 0 120 120" fill="none" style={style}>
     {[0,1,2].map(row => [0,1,2].map(col => (
-      <rect key={`${row}-${col}`} x={col*40+4} y={row*40+4} width="32" height="32"
-        stroke="white" strokeWidth="0.5" opacity="0.08" rx="3" />
+      <rect key={`${row}-${col}`} x={col*40+4} y={row*40+4} width="32" height="32" stroke="white" strokeWidth="0.5" opacity="0.08" rx="3" />
     )))}
     {[0,1,2].map(row => [0,1,2].map(col => (
       <circle key={`d-${row}-${col}`} cx={col*40+20} cy={row*40+20} r="1.5" fill="white" opacity="0.14" />
@@ -60,7 +61,6 @@ const CSS = `
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── NOISE OVERLAY ── */
 .ir-root::before {
   content: '';
   position: fixed; inset: 0;
@@ -81,9 +81,118 @@ const CSS = `
 
 .doodle { pointer-events: none; flex-shrink: 0; }
 
-/* ══════════════════════════════
-   TOP BAR
-══════════════════════════════ */
+/* ── COUNTDOWN SCREEN ── */
+.ir-countdown-screen {
+  position: fixed; inset: 0;
+  background: #000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 10000;
+  gap: 32px;
+}
+
+.ir-countdown-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(125,249,194,0.06) 0%, transparent 65%);
+  pointer-events: none;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.ir-countdown-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--a);
+  position: relative; z-index: 2;
+}
+
+.ir-countdown-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 160px; line-height: 1;
+  color: var(--w);
+  position: relative; z-index: 2;
+  animation: countPulse 1s ease-in-out infinite;
+}
+
+@keyframes countPulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.96); }
+}
+
+.ir-countdown-sub {
+  font-size: 14px; font-weight: 300;
+  color: var(--d); letter-spacing: 1px;
+  position: relative; z-index: 2;
+  text-align: center; max-width: 320px; line-height: 1.6;
+}
+
+.ir-countdown-bar-wrap {
+  width: 280px; height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px; overflow: hidden;
+  position: relative; z-index: 2;
+}
+
+.ir-countdown-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--a2), var(--a));
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.ir-countdown-skip {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px; letter-spacing: 3px;
+  color: var(--d); background: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 10px 28px; border-radius: 2px;
+  cursor: pointer; transition: all 0.2s;
+  position: relative; z-index: 2;
+}
+
+.ir-countdown-skip:hover {
+  color: var(--w);
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+}
+
+.ir-countdown-steps {
+  display: flex; gap: 24px;
+  position: relative; z-index: 2;
+}
+
+.ir-countdown-step {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 500; letter-spacing: 1px;
+  color: var(--d);
+}
+
+.ir-countdown-step-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--a); opacity: 0.5;
+  animation: stepPulse 1.5s ease-in-out infinite;
+}
+
+.ir-countdown-step.active .ir-countdown-step-dot {
+  opacity: 1;
+  box-shadow: 0 0 8px var(--a);
+}
+
+.ir-countdown-step.active {
+  color: var(--a);
+}
+
+@keyframes stepPulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+}
+
+/* ── TOP BAR ── */
 .ir-topbar {
   height: 52px;
   background: rgba(0,0,0,0.92);
@@ -144,14 +253,8 @@ const CSS = `
   color: #fca5a5;
 }
 
-/* ══════════════════════════════
-   BODY
-══════════════════════════════ */
 .ir-body { flex: 1; display: flex; overflow: hidden; }
 
-/* ══════════════════════════════
-   RESIZE HANDLE
-══════════════════════════════ */
 .ir-resizer {
   width: 4px; background: var(--bdr);
   cursor: col-resize; flex-shrink: 0;
@@ -166,9 +269,6 @@ const CSS = `
   background: rgba(125,249,194,0.15); border-radius: 2px;
 }
 
-/* ══════════════════════════════
-   LEFT — PAYTON
-══════════════════════════════ */
 .ir-left {
   position: relative; background: var(--c1);
   display: flex; flex-direction: column;
@@ -188,12 +288,7 @@ const CSS = `
   pointer-events: none;
   animation: glowPulse 5s ease-in-out infinite;
 }
-@keyframes glowPulse {
-  0%,100% { transform: scale(1); opacity: 0.6; }
-  50%      { transform: scale(1.12); opacity: 1; }
-}
 
-/* Status pill */
 .ir-status-pill {
   position: absolute; top: 18px; left: 50%;
   transform: translateX(-50%);
@@ -213,7 +308,6 @@ const CSS = `
   animation: recPulse 1.2s ease-in-out infinite;
 }
 
-/* Speaking indicator */
 .ir-speaking {
   position: absolute; bottom: 82px; left: 50%;
   transform: translateX(-50%);
@@ -243,7 +337,6 @@ const CSS = `
   text-transform: uppercase; color: var(--m);
 }
 
-/* Name tag */
 .ir-nametag {
   position: absolute; bottom: 82px; left: 18px;
   background: rgba(0,0,0,0.72); backdrop-filter: blur(12px);
@@ -261,7 +354,6 @@ const CSS = `
   text-transform: uppercase; color: var(--a); margin-top: 1px;
 }
 
-/* User PiP */
 .ir-pip {
   position: absolute; top: 18px; right: 18px;
   width: 148px; height: 104px; border-radius: 2px;
@@ -288,9 +380,6 @@ const CSS = `
   text-shadow: 0 1px 6px rgba(0,0,0,0.9);
 }
 
-/* ══════════════════════════════
-   CONTROLS BAR
-══════════════════════════════ */
 .ir-controls {
   height: 70px; background: rgba(0,0,0,0.9);
   backdrop-filter: blur(20px);
@@ -337,9 +426,6 @@ const CSS = `
   box-shadow: 0 6px 28px rgba(239,68,68,0.5);
 }
 
-/* ══════════════════════════════
-   RIGHT PANEL
-══════════════════════════════ */
 .ir-right {
   flex: 1; display: flex; flex-direction: column;
   background: #070605;
@@ -358,7 +444,6 @@ const CSS = `
   text-transform: uppercase; color: var(--d);
 }
 
-/* Question box */
 .ir-question-wrap {
   padding: 22px 26px;
   border-bottom: 1px solid var(--bdr);
@@ -381,7 +466,6 @@ const CSS = `
   font-size: 16px; line-height: 1.7; color: var(--w); font-weight: 400;
 }
 
-/* Answer area */
 .ir-answer-wrap {
   flex: 1; padding: 22px 26px;
   display: flex; flex-direction: column; gap: 14px;
@@ -451,7 +535,6 @@ const CSS = `
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Feedback card */
 .ir-feedback {
   margin: 0 26px 18px;
   background: rgba(125,249,194,0.03);
@@ -493,7 +576,6 @@ const CSS = `
   color: var(--a); border: 1px solid rgba(125,249,194,0.18);
 }
 
-/* Summary button */
 .ir-view-summary-btn {
   margin: 0 26px 22px; width: calc(100% - 52px);
   font-family: 'Bebas Neue', sans-serif;
@@ -510,7 +592,6 @@ const CSS = `
   box-shadow: 0 8px 32px rgba(125,249,194,0.35);
 }
 
-/* Bottom doodle strip */
 .ir-doodle-strip {
   padding: 0 26px 18px;
   display: flex; gap: 16px;
@@ -518,7 +599,9 @@ const CSS = `
 }
 `;
 
-function useTimer() {
+const COUNTDOWN_TOTAL = 18;
+
+const TimerDisplay = () => {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setSeconds(s => s + 1), 1000);
@@ -526,26 +609,29 @@ function useTimer() {
   }, []);
   const m = String(Math.floor(seconds / 60)).padStart(2, "0");
   const s = String(seconds % 60).padStart(2, "0");
-  return `${m}:${s}`;
-}
+  return <span className="ir-timer">{m}:{s}</span>;
+};
 
 export default function InterviewRoom({ interviewData, onFinish }) {
-  const [question, setQuestion]           = useState(interviewData.question);
-  const [audioUrl, setAudioUrl]           = useState(interviewData.audioUrl || null);
-  const [lipSync, setLipSync]             = useState(null);
-  const [userTurn, setUserTurn]           = useState(false);
-  const lipSyncTimeouts                   = useRef([]);
-  const recognitionRef                    = useRef(null);
-  const [answer, setAnswer]               = useState("");
-  const [feedback, setFeedback]           = useState(null);
-  const [completed, setCompleted]         = useState(false);
-  const [loading, setLoading]             = useState(false);
-  const [isSpeaking, setIsSpeaking]       = useState(false);
-  const [micOn, setMicOn]                 = useState(true);
-  const [camOn, setCamOn]                 = useState(true);
+  const [question, setQuestion]             = useState(interviewData.question);
+  const [userTurn, setUserTurn]             = useState(false);
+  const lipSyncTimeouts                     = useRef([]);
+  const recognitionRef                      = useRef(null);
+  const [answer, setAnswer]                 = useState("");
+  const [feedback, setFeedback]             = useState(null);
+  const [completed, setCompleted]           = useState(false);
+  const [loading, setLoading]               = useState(false);
+  const [isSpeaking, setIsSpeaking]         = useState(false);
+  const [micOn, setMicOn]                   = useState(true);
+  const [camOn, setCamOn]                   = useState(true);
   const [questionNumber, setQuestionNumber] = useState(1);
-  const nodIntervalRef                    = useRef(null);
-  const [streamUrl, setStreamUrl] = useState("http://localhost"); // Fallback to localhost
+  const nodIntervalRef                      = useRef(null);
+  const [streamUrl, setStreamUrl]           = useState(null);
+
+  // Countdown state
+  const [countdown, setCountdown]           = useState(COUNTDOWN_TOTAL);
+  const [isReady, setIsReady]               = useState(false);
+
   // Resize state
   const [leftWidth, setLeftWidth] = useState(62);
   const isDragging  = useRef(false);
@@ -555,7 +641,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   // Camera
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
-  const timer     = useTimer();
 
   // Camera setup
   useEffect(() => {
@@ -573,30 +658,37 @@ export default function InterviewRoom({ interviewData, onFinish }) {
       streamRef.current.getVideoTracks().forEach(t => t.enabled = camOn);
     }
   }, [camOn]);
-  useEffect(() => {
-  const fetchStreamUrl = async () => {
-    try {
-      const data = await api.getPixelStreamingUrl();
-      if (data && data.url) {
-        console.log("🚀 Payton Stream URL Received:", data.url);
-        setStreamUrl(data.url);
-      }
-    } catch (err) {
-      // If this alerts, it means the route is still 404
-      console.error("❌ Failed to fetch stream URL:", err);
-    }
-  };
 
-  fetchStreamUrl();
-}, []); // Runs once when the room opens
-  // Play initial question on load
+  // Fetch pixel streaming URL
   useEffect(() => {
-    if (interviewData.audioUrl && interviewData.lipSyncTimes) {
-      playAudioWithLipSync(interviewData.audioUrl, interviewData.lipSyncTimes, interviewData.lipSyncVisemes);
-    }
+    api.getPixelStreamingUrl()
+      .then(data => { if (data?.url) setStreamUrl(data.url); })
+      .catch(() => {});
   }, []);
 
-  // Cleanup timeouts on unmount
+  // Countdown timer
+  useEffect(() => {
+    if (isReady) return;
+    if (countdown > 0) {
+      const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+      return () => clearTimeout(t);
+    } else {
+      setIsReady(true);
+    }
+  }, [countdown, isReady]);
+
+  // Play initial audio when ready
+  useEffect(() => {
+    if (isReady && interviewData.audioUrl && interviewData.lipSyncTimes) {
+      playAudioWithLipSync(
+        interviewData.audioUrl,
+        interviewData.lipSyncTimes,
+        interviewData.lipSyncVisemes
+      );
+    }
+  }, [isReady]);
+
+  // Cleanup
   useEffect(() => {
     return () => lipSyncTimeouts.current.forEach(t => clearTimeout(t));
   }, []);
@@ -630,13 +722,14 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     };
   }, []);
 
+  // Speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
     const recognition = new SpeechRecognition();
-    recognition.continuous      = true;
-    recognition.interimResults  = true;
-    recognition.lang            = 'en-US';
+    recognition.continuous     = true;
+    recognition.interimResults = true;
+    recognition.lang           = 'en-US';
     let nodTimeout  = null;
     let lastNodTime = 0;
     recognition.onresult = (event) => {
@@ -646,13 +739,11 @@ export default function InterviewRoom({ interviewData, onFinish }) {
       }
       setAnswer(transcript);
       const now = Date.now();
-      if (now - lastNodTime > 4000) {
-        if (Math.random() < 0.4) {
-          sendPaytonState("talking");
-          lastNodTime = now;
-          if (nodTimeout) clearTimeout(nodTimeout);
-          nodTimeout = setTimeout(() => { sendPaytonState("idle"); }, 1500);
-        }
+      if (now - lastNodTime > 4000 && Math.random() < 0.4) {
+        sendPaytonState("talking");
+        lastNodTime = now;
+        if (nodTimeout) clearTimeout(nodTimeout);
+        nodTimeout = setTimeout(() => sendPaytonState("idle"), 1500);
       }
     };
     recognition.onerror = (e) => console.error('Speech error:', e.error);
@@ -673,7 +764,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   }, [isSpeaking, loading, userTurn]);
 
   function sendPaytonState(state) {
-    console.log("sendPaytonState:", state);
     const iframe = document.querySelector('iframe');
     if (iframe) iframe.contentWindow.postMessage({ type: "state", value: state }, '*');
   }
@@ -682,7 +772,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     lipSyncTimeouts.current.forEach(t => clearTimeout(t));
     lipSyncTimeouts.current = [];
     if (nodIntervalRef.current) clearInterval(nodIntervalRef.current);
-    const fullUrl = url.startsWith('http') ? url : `https://persona-ai-production-ac95.up.railway.app${url}`;
+    const fullUrl = url.startsWith('http') ? url : `${BACKEND}${url}`;
     const audio   = new Audio(fullUrl);
     setIsSpeaking(true);
     setUserTurn(false);
@@ -709,76 +799,117 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   }
 
   async function submitAnswer() {
-  if (!answer.trim() || loading) return;
-  setLoading(true);
-  if (nodIntervalRef.current) clearInterval(nodIntervalRef.current);
-  const submittedAnswer = answer;
-  setAnswer("");
+    if (!answer.trim() || loading) return;
+    setLoading(true);
+    if (nodIntervalRef.current) clearInterval(nodIntervalRef.current);
+    const submittedAnswer = answer;
+    setAnswer("");
 
-  try {
-    // Step 1 — evaluate answer
-    const res = await api.submitAnswer(interviewData.interviewId, submittedAnswer);
+    try {
+      const res = await api.submitAnswer(interviewData.interviewId, submittedAnswer);
 
-    // Step 2 — show emotion
-    if (res.introCompleted) {
-      if (res.isCorrect) sendPaytonState("happy");
-      else sendPaytonState("concerned");
-    }
+      if (res.introCompleted) {
+        if (res.isCorrect) sendPaytonState("happy");
+        else sendPaytonState("concerned");
+      }
 
-    // Step 3 — play reaction and wait for it to finish
-    const reaction = await api.getReaction(
-      interviewData.interviewId,
-      res.isCorrect,
-      submittedAnswer,
-      res.introCompleted
-    );
-
-    await new Promise((resolve) => {
-      const audio = playAudioWithLipSync(
-        reaction.audioUrl,
-        reaction.lipSyncTimes,
-        reaction.lipSyncVisemes
+      const reaction = await api.getReaction(
+        interviewData.interviewId,
+        res.isCorrect,
+        submittedAnswer,
+        res.introCompleted
       );
-      audio.onended = () => { setIsSpeaking(false); resolve(); };
-      audio.onerror = () => { setIsSpeaking(false); resolve(); };
-    });
 
-    // Step 4 — if completed, show summary button
-    if (res.isCompleted) {
-      setFeedback(res);
-      setCompleted(true);
+      await new Promise((resolve) => {
+        const audio = playAudioWithLipSync(
+          reaction.audioUrl,
+          reaction.lipSyncTimes,
+          reaction.lipSyncVisemes
+        );
+        audio.onended = () => { setIsSpeaking(false); resolve(); };
+        audio.onerror = () => { setIsSpeaking(false); resolve(); };
+      });
+
+      if (res.isCompleted) {
+        setFeedback(res);
+        setCompleted(true);
+        setLoading(false);
+        return;
+      }
+
+      const next = await api.nextQuestion(interviewData.interviewId);
+      setQuestion(next.question);
+      if (next.questionNumber !== null && next.questionNumber !== undefined) {
+        setQuestionNumber(next.questionNumber);
+      }
+      playAudioWithLipSync(next.audioUrl, next.lipSyncTimes, next.lipSyncVisemes);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Step 5 — get next question and play it
-    const next = await api.nextQuestion(interviewData.interviewId);
-    setQuestion(next.question);
-
-    if (next.questionNumber !== null && next.questionNumber !== undefined) {
-      setQuestionNumber(next.questionNumber);
-    }
-
-    playAudioWithLipSync(next.audioUrl, next.lipSyncTimes, next.lipSyncVisemes);
-
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
   }
-}
 
+  const progress = ((COUNTDOWN_TOTAL - countdown) / COUNTDOWN_TOTAL) * 100;
+
+  // ── COUNTDOWN SCREEN ──
+  if (!isReady) {
+    return (
+      <>
+        <style>{CSS}</style>
+        <div className="ir-countdown-screen">
+          <div className="ir-countdown-glow" />
+
+          <div className="ir-countdown-label">Initializing Interview Session</div>
+
+          <div className="ir-countdown-number">{countdown}</div>
+
+          <div className="ir-countdown-bar-wrap">
+            <div className="ir-countdown-bar" style={{ width: `${progress}%` }} />
+          </div>
+
+          <div className="ir-countdown-sub">
+            Payton is loading. Your interview will begin automatically.
+          </div>
+
+          <div className="ir-countdown-steps">
+            <div className={`ir-countdown-step ${countdown <= 16 ? "active" : ""}`}>
+              <div className="ir-countdown-step-dot" />
+              <span>Connecting</span>
+            </div>
+            <div className={`ir-countdown-step ${countdown <= 10 ? "active" : ""}`}>
+              <div className="ir-countdown-step-dot" />
+              <span>Loading Avatar</span>
+            </div>
+            <div className={`ir-countdown-step ${countdown <= 4 ? "active" : ""}`}>
+              <div className="ir-countdown-step-dot" />
+              <span>Ready</span>
+            </div>
+          </div>
+
+          <button
+            className="ir-countdown-skip"
+            onClick={() => setIsReady(true)}
+          >
+            Skip → Start Now
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // ── MAIN INTERVIEW ROOM ──
   return (
     <>
       <style>{CSS}</style>
       <div className="ir-root">
 
-        {/* ── TOP BAR ── */}
         <div className="ir-topbar">
           <div className="ir-logo">persona.ai</div>
           <div className="ir-topbar-center">
             <div className="ir-rec-dot" />
-            <span className="ir-timer">{timer}</span>
+            <TimerDisplay />
             <span className="ir-qbadge">Q{questionNumber} / {interviewData.questionLimit}</span>
           </div>
           <button className="ir-end-btn" onClick={() => onFinish(interviewData.interviewId)}>
@@ -786,15 +917,11 @@ export default function InterviewRoom({ interviewData, onFinish }) {
           </button>
         </div>
 
-        {/* ── BODY ── */}
         <div className="ir-body">
-
-          {/* LEFT — PAYTON */}
           <div className="ir-left" style={{ width: `${leftWidth}%` }}>
             <div className="ir-payton-area">
               <div className="ir-payton-glow" />
 
-              {/* Status pill */}
               <div className={`ir-status-pill ${loading || isSpeaking ? "active" : ""}`}>
                 {loading ? (
                   <><span className="ir-status-dot" /> Processing answer...</>
@@ -805,19 +932,30 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 )}
               </div>
 
-              {/* Payton pixel streaming */}
-              <iframe
-                src={streamUrl}
-                title="Payton"
-                style={{
-                  position: "absolute", inset: 0,
-                  width: "100%", height: "100%",
-                  border: "none", background: "#000"
-                }}
-                allow="microphone; camera; autoplay; clipboard-write"
-              />
+              {streamUrl ? (
+                <iframe
+                  src={streamUrl}
+                  title="Payton"
+                  style={{
+                    position: "absolute", inset: 0,
+                    width: "100%", height: "100%",
+                    border: "none", background: "#000"
+                  }}
+                  allow="autoplay; fullscreen; microphone; camera; clipboard-write"
+                />
+              ) : (
+                <div style={{
+                  color: "var(--d)", fontSize: "11px", zIndex: 10,
+                  fontFamily: "Bricolage Grotesque", letterSpacing: "2px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  height: "100%", width: "100%", position: "absolute",
+                  flexDirection: "column", gap: "12px"
+                }}>
+                  <div className="ir-spinner" style={{ borderColor: "rgba(255,255,255,0.2)", borderTopColor: "var(--a)", width: "20px", height: "20px" }} />
+                  <span>Avatar offline — interview audio active</span>
+                </div>
+              )}
 
-              {/* Speaking bars */}
               <div className={`ir-speaking ${isSpeaking ? "active" : ""}`}>
                 <div className="ir-speaking-bars">
                   {[1,2,3,4,5].map(i => <div key={i} className="ir-speaking-bar" />)}
@@ -825,17 +963,14 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 <span className="ir-speaking-text">Payton is speaking</span>
               </div>
 
-              {/* Name tag */}
               <div className="ir-nametag">
                 <div className="ir-nametag-name">Payton</div>
                 <div className="ir-nametag-sub">AI Interviewer · persona.ai</div>
               </div>
 
-              {/* Corner doodles */}
               <DoodleCorner style={{ position:"absolute", top:60, left:14, opacity:0.4, pointerEvents:"none" }} />
               <DoodleCross  size={28} style={{ position:"absolute", bottom:80, right:170, opacity:0.25, pointerEvents:"none" }} />
 
-              {/* User PiP */}
               <div className="ir-pip">
                 {camOn ? (
                   <video ref={videoRef} autoPlay muted playsInline />
@@ -849,18 +984,15 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               </div>
             </div>
 
-            {/* CONTROLS */}
             <div className="ir-controls">
               <div style={{ position:"relative" }}>
-                <button className={`ctrl-btn ${micOn ? "" : "off"}`}
-                  onClick={() => setMicOn(m => !m)}>
+                <button className={`ctrl-btn ${micOn ? "" : "off"}`} onClick={() => setMicOn(m => !m)}>
                   {micOn ? "🎙️" : "🔇"}
                 </button>
                 <span className="ctrl-btn-label">{micOn ? "Mute" : "Unmuted"}</span>
               </div>
               <div style={{ position:"relative" }}>
-                <button className={`ctrl-btn ${camOn ? "" : "off"}`}
-                  onClick={() => setCamOn(c => !c)}>
+                <button className={`ctrl-btn ${camOn ? "" : "off"}`} onClick={() => setCamOn(c => !c)}>
                   {camOn ? "📹" : "🚫"}
                 </button>
                 <span className="ctrl-btn-label">{camOn ? "Camera" : "Cam off"}</span>
@@ -880,24 +1012,19 @@ export default function InterviewRoom({ interviewData, onFinish }) {
             </div>
           </div>
 
-          {/* RESIZER */}
           <div className="ir-resizer" onMouseDown={onMouseDown} />
 
-          {/* RIGHT — INTERACTION */}
           <div className="ir-right">
-
             <div className="ir-right-header">
               <div className="ir-right-title">Interview Panel</div>
               <DoodleWave style={{ opacity:0.1, width:120, height:24 }} />
             </div>
 
-            {/* Question */}
             <div className="ir-question-wrap">
               <div className="ir-question-label">Question {questionNumber}</div>
               <p className="ir-question-text">{question}</p>
             </div>
 
-            {/* Answer */}
             <div className="ir-answer-wrap">
               {!completed && (
                 <>
@@ -930,7 +1057,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               )}
             </div>
 
-            {/* Feedback card */}
             {feedback && (
               <div className="ir-feedback">
                 <div className="ir-feedback-header">
@@ -954,7 +1080,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               </button>
             )}
 
-            {/* Subtle doodle strip at bottom */}
             <div className="ir-doodle-strip">
               <DoodleGrid  style={{ width:60, height:60 }} />
               <DoodleCircle size={44} opacity={0.5} />
