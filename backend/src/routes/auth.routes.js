@@ -1,28 +1,16 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
 import { validate as validateEmail } from 'deep-email-validator'; 
 import { PrismaClient } from '@prisma/client';
+import { Resend } from 'resend'; // 🔴 Replaced Nodemailer with Resend
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_ai_interviewer_key";
 
-// The Bulletproof Cloud Config
-// The STARTTLS Fallback Config
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,          // Switched to 587
-  secure: false,      // MUST be false when using 587
-  requireTLS: true,   // Forces encryption via STARTTLS
-  auth: { 
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS 
-  },
-  logger: true,       // 🔴 ADD THIS: Prints detailed email logs to Railway terminal
-  debug: true         // 🔴 ADD THIS: Shows the exact SMTP traffic
-});
+// 🔴 Initialize Resend (This bypasses Railway's firewall completely)
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // --- 1. REGISTER (Sends OTP) ---
 router.post('/register', async (req, res) => {
@@ -67,26 +55,24 @@ router.post('/register', async (req, res) => {
       }
     });
 
-    // 🟢 PRODUCTION MODE: Send the actual OTP Email
-    const mailOptions = {
-      from: `"Persona AI" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `${otp} is your Persona AI verification code`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background-color: #000; color: #fff; border-radius: 12px; text-align: center; border: 1px solid #333;">
-          <h2 style="color: #7DF9C2; letter-spacing: 2px;">VERIFICATION CODE</h2>
-          <p style="color: #aaa; font-size: 16px;">Enter the code below to activate your account.</p>
-          <div style="font-size: 48px; font-weight: bold; letter-spacing: 10px; margin: 30px 0; color: #fff;">${otp}</div>
-          <p style="color: #666; font-size: 12px;">This code expires in 10 minutes.</p>
-        </div>
-      `
-    };
-
+    // 🟢 PRODUCTION MODE: Send the actual OTP Email via Resend API
     try {
-      await transporter.sendMail(mailOptions);
+      await resend.emails.send({
+        from: 'onboarding@resend.dev', // Resend gives you this free testing email address!
+        to: email,
+        subject: `${otp} is your Persona AI verification code`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background-color: #000; color: #fff; border-radius: 12px; text-align: center; border: 1px solid #333;">
+            <h2 style="color: #7DF9C2; letter-spacing: 2px;">VERIFICATION CODE</h2>
+            <p style="color: #aaa; font-size: 16px;">Enter the code below to activate your account.</p>
+            <div style="font-size: 48px; font-weight: bold; letter-spacing: 10px; margin: 30px 0; color: #fff;">${otp}</div>
+            <p style="color: #666; font-size: 12px;">This code expires in 10 minutes.</p>
+          </div>
+        `
+      });
       res.json({ message: "A 6-digit code has been sent to your email." });
     } catch (mailError) {
-      console.error("Mail Error:", mailError.message);
+      console.error("Resend Error:", mailError);
       return res.status(500).json({ error: "Failed to send email. Check backend terminal for details." });
     }
 
@@ -119,10 +105,10 @@ router.post('/verify-otp', async (req, res) => {
       data: { isVerified: true, otp: null, otpExpires: null }
     });
 
-    // 🟢 PRODUCTION MODE: Shoot off the Welcome Email! 
-    // We don't 'await' this so the user logs in instantly without waiting for the email to send.
-    const welcomeMailOptions = {
-      from: `"Persona AI" <${process.env.EMAIL_USER}>`,
+    // 🟢 PRODUCTION MODE: Shoot off the Welcome Email via Resend!
+    // We don't 'await' this so the user logs in instantly without waiting.
+    resend.emails.send({
+      from: 'onboarding@resend.dev',
       to: user.email,
       subject: 'Welcome to Persona AI! 🚀',
       html: `
@@ -141,9 +127,7 @@ router.post('/verify-otp', async (req, res) => {
           </div>
         </div>
       `
-    };
-
-    transporter.sendMail(welcomeMailOptions).catch(err => {
+    }).catch(err => {
       console.error("Failed to send welcome email:", err);
     });
 
