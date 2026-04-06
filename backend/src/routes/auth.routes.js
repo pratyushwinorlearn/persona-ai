@@ -9,11 +9,14 @@ const router = express.Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_ai_interviewer_key";
 
+// The Bulletproof Cloud Config
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465, // Explicitly force the secure SMTP port
+  secure: true, // Use SSL/TLS
   auth: { 
     user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS // MUST be the 16-letter App Password!
+    pass: process.env.EMAIL_PASS 
   }
 });
 
