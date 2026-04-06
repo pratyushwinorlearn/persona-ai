@@ -3,13 +3,13 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { validate as validateEmail } from 'deep-email-validator'; 
 import { PrismaClient } from '@prisma/client';
-import { Resend } from 'resend'; // 🔴 Replaced Nodemailer with Resend
+import { Resend } from 'resend';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_ai_interviewer_key";
 
-// 🔴 Initialize Resend (This bypasses Railway's firewall completely)
+// Initialize Resend with your API Key
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // --- 1. REGISTER (Sends OTP) ---
@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
       validateMx: true,
       validateTypo: true,
       validateDisposable: true,
-      validateSMTP: false // Kept false to prevent Google DNS blocking on cloud servers
+      validateSMTP: false 
     });
 
     if (!validation.valid) {
@@ -40,7 +40,6 @@ router.post('/register', async (req, res) => {
     if (existingUser) return res.status(400).json({ error: "Email already in use." });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expires = new Date(Date.now() + 10 * 60000); 
 
@@ -55,10 +54,10 @@ router.post('/register', async (req, res) => {
       }
     });
 
-    // 🟢 PRODUCTION MODE: Send the actual OTP Email via Resend API
+    // 🟢 LIVE DOMAIN MODE: Sending from your verified persona-ai.me domain
     try {
       await resend.emails.send({
-        from: 'onboarding@resend.dev', // Resend gives you this free testing email address!
+        from: 'Persona AI <auth@persona-ai.me>', // Updated to your domain
         to: email,
         subject: `${otp} is your Persona AI verification code`,
         html: `
@@ -73,7 +72,7 @@ router.post('/register', async (req, res) => {
       res.json({ message: "A 6-digit code has been sent to your email." });
     } catch (mailError) {
       console.error("Resend Error:", mailError);
-      return res.status(500).json({ error: "Failed to send email. Check backend terminal for details." });
+      return res.status(500).json({ error: "Failed to send email." });
     }
 
   } catch (error) {
@@ -99,16 +98,14 @@ router.post('/verify-otp', async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired verification code." });
     }
 
-    // Mark as verified and wipe the OTP data
     await prisma.user.update({
       where: { id: user.id },
       data: { isVerified: true, otp: null, otpExpires: null }
     });
 
-    // 🟢 PRODUCTION MODE: Shoot off the Welcome Email via Resend!
-    // We don't 'await' this so the user logs in instantly without waiting.
+    // 🟢 LIVE DOMAIN MODE: Sending Welcome Email from your verified domain
     resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Persona AI <welcome@persona-ai.me>', // Updated to your domain
       to: user.email,
       subject: 'Welcome to Persona AI! 🚀',
       html: `
@@ -127,11 +124,8 @@ router.post('/verify-otp', async (req, res) => {
           </div>
         </div>
       `
-    }).catch(err => {
-      console.error("Failed to send welcome email:", err);
-    });
+    }).catch(err => console.error("Failed to send welcome email:", err));
 
-    // Log the user in
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (error) {
@@ -147,7 +141,7 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found." });
 
     if (!user.isVerified) {
-      return res.status(403).json({ error: "Account not verified. Please register again to receive a code." });
+      return res.status(403).json({ error: "Account not verified." });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
