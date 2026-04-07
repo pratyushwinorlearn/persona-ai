@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import api from "../services/api";
 
-/* ── SVG DOODLES (matching StartInterview) ── */
 const DoodleCircle = ({ size = 120, opacity = 0.12, className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width={size} height={size} viewBox="0 0 100 100" fill="none" style={style}>
     <circle cx="50" cy="50" r="44" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity={opacity} />
@@ -34,8 +33,7 @@ const DoodleWave = ({ className = "", style = {} }) => (
 const DoodleGrid = ({ className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width="120" height="120" viewBox="0 0 120 120" fill="none" style={style}>
     {[0,1,2].map(row => [0,1,2].map(col => (
-      <rect key={`${row}-${col}`} x={col*40+4} y={row*40+4} width="32" height="32"
-        stroke="white" strokeWidth="0.5" opacity="0.08" rx="3" />
+      <rect key={`${row}-${col}`} x={col*40+4} y={row*40+4} width="32" height="32" stroke="white" strokeWidth="0.5" opacity="0.08" rx="3" />
     )))}
     {[0,1,2].map(row => [0,1,2].map(col => (
       <circle key={`d-${row}-${col}`} cx={col*40+20} cy={row*40+20} r="1.5" fill="white" opacity="0.14" />
@@ -90,17 +88,12 @@ const CSS = `
   flex-shrink: 0; z-index: 100;
   backdrop-filter: blur(20px);
 }
-
 .ir-logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 20px; letter-spacing: 5px;
   color: var(--w); text-transform: uppercase;
 }
-
-.ir-topbar-center {
-  display: flex; align-items: center; gap: 14px;
-}
-
+.ir-topbar-center { display: flex; align-items: center; gap: 14px; }
 .ir-rec-dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: #ef4444;
@@ -110,12 +103,10 @@ const CSS = `
   0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
   50%      { opacity: 0.5; box-shadow: 0 0 0 4px rgba(239,68,68,0); }
 }
-
 .ir-timer {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 18px; letter-spacing: 3px; color: var(--m);
 }
-
 .ir-qbadge {
   font-size: 10px; font-weight: 700; letter-spacing: 2px;
   text-transform: uppercase; color: var(--a);
@@ -123,7 +114,6 @@ const CSS = `
   border: 1px solid rgba(125,249,194,0.2);
   padding: 4px 12px; border-radius: 2px;
 }
-
 .ir-end-btn {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
@@ -180,63 +170,6 @@ const CSS = `
   50%      { transform: scale(1.12); opacity: 1; }
 }
 
-/* ── COUNTDOWN OVERLAY (inside payton area) ── */
-.ir-loading-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.82);
-  backdrop-filter: blur(8px);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 30; gap: 20px;
-}
-
-.ir-loading-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--a);
-}
-
-.ir-loading-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 96px; line-height: 1; color: var(--w);
-  animation: cdPulse 1s ease-in-out infinite;
-}
-
-@keyframes cdPulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.94); }
-}
-
-.ir-loading-sub {
-  font-size: 12px; font-weight: 300; color: var(--d);
-  letter-spacing: 1px; text-align: center;
-  max-width: 220px; line-height: 1.6;
-}
-
-.ir-loading-bar-wrap {
-  width: 180px; height: 2px;
-  background: rgba(255,255,255,0.08); border-radius: 2px;
-  overflow: hidden;
-}
-
-.ir-loading-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--a2), var(--a));
-  border-radius: 2px;
-  transition: width 1s linear;
-}
-
-.ir-loading-skip {
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--d);
-  background: none; border: 1px solid rgba(255,255,255,0.1);
-  padding: 8px 20px; border-radius: 2px; cursor: pointer;
-  transition: all 0.2s; margin-top: 4px;
-}
-.ir-loading-skip:hover {
-  color: var(--w); border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.04);
-}
-
 .ir-status-pill {
   position: absolute; top: 18px; left: 50%;
   transform: translateX(-50%);
@@ -247,9 +180,7 @@ const CSS = `
   color: var(--d); z-index: 10; white-space: nowrap;
   display: flex; align-items: center; gap: 8px;
 }
-.ir-status-pill.active {
-  border-color: rgba(125,249,194,0.25); color: var(--a);
-}
+.ir-status-pill.active { border-color: rgba(125,249,194,0.25); color: var(--a); }
 .ir-status-dot {
   width: 5px; height: 5px; border-radius: 50%;
   background: currentColor;
@@ -271,9 +202,9 @@ const CSS = `
   width: 2px; background: var(--a); border-radius: 2px;
   animation: barBounce 0.8s ease-in-out infinite;
 }
-.ir-speaking-bar:nth-child(1) { height: 8px;  animation-delay: 0s;    }
-.ir-speaking-bar:nth-child(2) { height: 16px; animation-delay: 0.1s;  }
-.ir-speaking-bar:nth-child(3) { height: 12px; animation-delay: 0.2s;  }
+.ir-speaking-bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
+.ir-speaking-bar:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+.ir-speaking-bar:nth-child(3) { height: 12px; animation-delay: 0.2s; }
 .ir-speaking-bar:nth-child(4) { height: 20px; animation-delay: 0.05s; }
 .ir-speaking-bar:nth-child(5) { height: 10px; animation-delay: 0.15s; }
 @keyframes barBounce {
@@ -328,12 +259,70 @@ const CSS = `
   text-shadow: 0 1px 6px rgba(0,0,0,0.9);
 }
 
+/* ── CONTROLS BAR — expanded when countdown active ── */
 .ir-controls {
-  height: 70px; background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.9);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--bdr);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0; flex-shrink: 0;
+}
+
+.ir-controls-buttons {
+  height: 70px; width: 100%;
   display: flex; align-items: center;
-  justify-content: center; gap: 16px; flex-shrink: 0;
+  justify-content: center; gap: 16px;
+}
+
+/* ── COUNTDOWN STRIP — below controls buttons ── */
+.ir-countdown-strip {
+  width: 100%;
+  padding: 10px 24px 14px;
+  border-top: 1px solid var(--bdr);
+  display: flex; align-items: center; gap: 16px;
+}
+
+.ir-countdown-strip-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 2px;
+  color: var(--a); line-height: 1; flex-shrink: 0;
+  min-width: 32px;
+  animation: cdPulse 1s ease-in-out infinite;
+}
+@keyframes cdPulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.ir-countdown-strip-bar-wrap {
+  flex: 1; height: 2px;
+  background: rgba(255,255,255,0.07); border-radius: 2px;
+  overflow: hidden;
+}
+.ir-countdown-strip-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--a2), var(--a));
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.ir-countdown-strip-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--d);
+  flex-shrink: 0;
+}
+
+.ir-countdown-strip-skip {
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--d);
+  background: none; border: 1px solid rgba(255,255,255,0.1);
+  padding: 5px 12px; border-radius: 2px; cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.ir-countdown-strip-skip:hover {
+  color: var(--w); border-color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.04);
 }
 
 .ctrl-btn {
@@ -379,7 +368,6 @@ const CSS = `
   background: #070605;
   border-left: 1px solid var(--bdr); overflow: hidden;
 }
-
 .ir-right-header {
   padding: 18px 26px 14px;
   border-bottom: 1px solid var(--bdr);
@@ -457,7 +445,6 @@ const CSS = `
   font-size: 11px; font-weight: 400;
   letter-spacing: 0.5px; color: var(--d);
 }
-
 .ir-submit-btn {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 15px; letter-spacing: 3px;
@@ -584,7 +571,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   const videoRef    = useRef(null);
   const streamRef   = useRef(null);
 
-  // Camera setup
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       .then(stream => {
@@ -601,14 +587,13 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     }
   }, [camOn]);
 
-  // Fetch pixel streaming URL
   useEffect(() => {
     api.getPixelStreamingUrl()
       .then(data => { if (data?.url) setStreamUrl(data.url); })
       .catch(() => {});
   }, []);
 
-  // Countdown timer
+  // Countdown
   useEffect(() => {
     if (isReady) return;
     if (countdown > 0) {
@@ -619,7 +604,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     }
   }, [countdown, isReady]);
 
-  // Play initial audio only when ready
+  // Play audio only when ready
   useEffect(() => {
     if (isReady && interviewData.audioUrl && interviewData.lipSyncTimes) {
       playAudioWithLipSync(
@@ -630,12 +615,10 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     }
   }, [isReady]);
 
-  // Cleanup
   useEffect(() => {
     return () => lipSyncTimeouts.current.forEach(t => clearTimeout(t));
   }, []);
 
-  // Resize logic
   const onMouseDown = useCallback((e) => {
     isDragging.current = true;
     startX.current     = e.clientX;
@@ -664,7 +647,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     };
   }, []);
 
-  // Speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -746,22 +728,18 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     if (nodIntervalRef.current) clearInterval(nodIntervalRef.current);
     const submittedAnswer = answer;
     setAnswer("");
-
     try {
       const res = await api.submitAnswer(interviewData.interviewId, submittedAnswer);
-
       if (res.introCompleted) {
         if (res.isCorrect) sendPaytonState("happy");
         else sendPaytonState("concerned");
       }
-
       const reaction = await api.getReaction(
         interviewData.interviewId,
         res.isCorrect,
         submittedAnswer,
         res.introCompleted
       );
-
       await new Promise((resolve) => {
         const audio = playAudioWithLipSync(
           reaction.audioUrl,
@@ -771,21 +749,18 @@ export default function InterviewRoom({ interviewData, onFinish }) {
         audio.onended = () => { setIsSpeaking(false); resolve(); };
         audio.onerror = () => { setIsSpeaking(false); resolve(); };
       });
-
       if (res.isCompleted) {
         setFeedback(res);
         setCompleted(true);
         setLoading(false);
         return;
       }
-
       const next = await api.nextQuestion(interviewData.interviewId);
       setQuestion(next.question);
       if (next.questionNumber !== null && next.questionNumber !== undefined) {
         setQuestionNumber(next.questionNumber);
       }
       playAudioWithLipSync(next.audioUrl, next.lipSyncTimes, next.lipSyncVisemes);
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -800,7 +775,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
       <style>{CSS}</style>
       <div className="ir-root">
 
-        {/* ── TOP BAR ── */}
         <div className="ir-topbar">
           <div className="ir-logo">persona.ai</div>
           <div className="ir-topbar-center">
@@ -813,35 +787,12 @@ export default function InterviewRoom({ interviewData, onFinish }) {
           </button>
         </div>
 
-        {/* ── BODY ── */}
         <div className="ir-body">
 
-          {/* LEFT — PAYTON */}
           <div className="ir-left" style={{ width: `${leftWidth}%` }}>
             <div className="ir-payton-area">
               <div className="ir-payton-glow" />
 
-              {/* ── COUNTDOWN OVERLAY — sits on top of payton area ── */}
-              {!isReady && (
-                <div className="ir-loading-overlay">
-                  <div className="ir-loading-label">Loading Payton</div>
-                  <div className="ir-loading-number">{countdown}</div>
-                  <div className="ir-loading-bar-wrap">
-                    <div className="ir-loading-bar" style={{ width: `${progress}%` }} />
-                  </div>
-                  <div className="ir-loading-sub">
-                    Click "Play" in Pixel Streaming to connect Payton's video feed
-                  </div>
-                  <button
-                    className="ir-loading-skip"
-                    onClick={() => setIsReady(true)}
-                  >
-                    Skip → Start Now
-                  </button>
-                </div>
-              )}
-
-              {/* Status pill */}
               <div className={`ir-status-pill ${loading || isSpeaking ? "active" : ""}`}>
                 {loading ? (
                   <><span className="ir-status-dot" /> Processing answer...</>
@@ -852,7 +803,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 )}
               </div>
 
-              {/* Payton pixel streaming */}
               {streamUrl ? (
                 <iframe
                   src={streamUrl}
@@ -877,7 +827,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 </div>
               )}
 
-              {/* Speaking bars */}
               <div className={`ir-speaking ${isSpeaking ? "active" : ""}`}>
                 <div className="ir-speaking-bars">
                   {[1,2,3,4,5].map(i => <div key={i} className="ir-speaking-bar" />)}
@@ -885,7 +834,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 <span className="ir-speaking-text">Payton is speaking</span>
               </div>
 
-              {/* Name tag */}
               <div className="ir-nametag">
                 <div className="ir-nametag-name">Payton</div>
                 <div className="ir-nametag-sub">AI Interviewer · persona.ai</div>
@@ -894,7 +842,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               <DoodleCorner style={{ position:"absolute", top:60, left:14, opacity:0.4, pointerEvents:"none" }} />
               <DoodleCross  size={28} style={{ position:"absolute", bottom:80, right:170, opacity:0.25, pointerEvents:"none" }} />
 
-              {/* User PiP */}
               <div className="ir-pip">
                 {camOn ? (
                   <video ref={videoRef} autoPlay muted playsInline />
@@ -908,39 +855,56 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               </div>
             </div>
 
-            {/* CONTROLS */}
+            {/* ── CONTROLS — with countdown strip below buttons ── */}
             <div className="ir-controls">
-              <div style={{ position:"relative" }}>
-                <button className={`ctrl-btn ${micOn ? "" : "off"}`} onClick={() => setMicOn(m => !m)}>
-                  {micOn ? "🎙️" : "🔇"}
-                </button>
-                <span className="ctrl-btn-label">{micOn ? "Mute" : "Unmuted"}</span>
+              <div className="ir-controls-buttons">
+                <div style={{ position:"relative" }}>
+                  <button className={`ctrl-btn ${micOn ? "" : "off"}`} onClick={() => setMicOn(m => !m)}>
+                    {micOn ? "🎙️" : "🔇"}
+                  </button>
+                  <span className="ctrl-btn-label">{micOn ? "Mute" : "Unmuted"}</span>
+                </div>
+                <div style={{ position:"relative" }}>
+                  <button className={`ctrl-btn ${camOn ? "" : "off"}`} onClick={() => setCamOn(c => !c)}>
+                    {camOn ? "📹" : "🚫"}
+                  </button>
+                  <span className="ctrl-btn-label">{camOn ? "Camera" : "Cam off"}</span>
+                </div>
+                <div style={{ position:"relative" }}>
+                  <button className="ctrl-btn">⚙️</button>
+                  <span className="ctrl-btn-label">Settings</span>
+                </div>
+                <div style={{ position:"relative", margin:"0 8px" }}>
+                  <button className="ctrl-btn-end" onClick={() => onFinish(interviewData.interviewId)}>📵</button>
+                  <span className="ctrl-btn-label" style={{ color:"#fca5a5" }}>End</span>
+                </div>
+                <div style={{ position:"relative" }}>
+                  <button className="ctrl-btn">⛶</button>
+                  <span className="ctrl-btn-label">Fullscreen</span>
+                </div>
               </div>
-              <div style={{ position:"relative" }}>
-                <button className={`ctrl-btn ${camOn ? "" : "off"}`} onClick={() => setCamOn(c => !c)}>
-                  {camOn ? "📹" : "🚫"}
-                </button>
-                <span className="ctrl-btn-label">{camOn ? "Camera" : "Cam off"}</span>
-              </div>
-              <div style={{ position:"relative" }}>
-                <button className="ctrl-btn">⚙️</button>
-                <span className="ctrl-btn-label">Settings</span>
-              </div>
-              <div style={{ position:"relative", margin:"0 8px" }}>
-                <button className="ctrl-btn-end" onClick={() => onFinish(interviewData.interviewId)}>📵</button>
-                <span className="ctrl-btn-label" style={{ color:"#fca5a5" }}>End</span>
-              </div>
-              <div style={{ position:"relative" }}>
-                <button className="ctrl-btn">⛶</button>
-                <span className="ctrl-btn-label">Fullscreen</span>
-              </div>
+
+              {/* Countdown strip — only shown while waiting */}
+              {!isReady && (
+                <div className="ir-countdown-strip">
+                  <div className="ir-countdown-strip-num">{countdown}</div>
+                  <div className="ir-countdown-strip-bar-wrap">
+                    <div className="ir-countdown-strip-bar" style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className="ir-countdown-strip-label">Payton loading…</div>
+                  <button
+                    className="ir-countdown-strip-skip"
+                    onClick={() => setIsReady(true)}
+                  >
+                    Skip
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* RESIZER */}
           <div className="ir-resizer" onMouseDown={onMouseDown} />
 
-          {/* RIGHT — INTERACTION */}
           <div className="ir-right">
             <div className="ir-right-header">
               <div className="ir-right-title">Interview Panel</div>
