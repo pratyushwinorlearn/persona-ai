@@ -140,7 +140,58 @@ const CSS = `
   color: #fca5a5;
 }
 
-.ir-body { flex: 1; display: flex; overflow: hidden; }
+.ir-body { flex: 1; display: flex; overflow: hidden; position: relative; }
+
+/* ── NEW FLOATING TOP-MIDDLE BANNER ── */
+.ir-loading-banner {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(125, 249, 194, 0.25);
+  border-radius: 6px;
+  padding: 16px 30px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  z-index: 9999;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+}
+
+.ir-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ir-banner-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--a);
+}
+
+.ir-banner-sub {
+  font-size: 12px;
+  color: var(--d);
+  letter-spacing: 0.5px;
+}
+
+.ir-banner-count {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  color: var(--w);
+  animation: cdPulse 1s ease-in-out infinite;
+  line-height: 1;
+}
+
+@keyframes cdPulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
 
 .ir-resizer {
   width: 4px; background: var(--bdr);
@@ -178,63 +229,6 @@ const CSS = `
 @keyframes glowPulse {
   0%,100% { transform: scale(1); opacity: 0.6; }
   50%      { transform: scale(1.12); opacity: 1; }
-}
-
-/* ── COUNTDOWN OVERLAY (inside payton area) ── */
-.ir-loading-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.82);
-  backdrop-filter: blur(8px);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 30; gap: 20px;
-}
-
-.ir-loading-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--a);
-}
-
-.ir-loading-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 96px; line-height: 1; color: var(--w);
-  animation: cdPulse 1s ease-in-out infinite;
-}
-
-@keyframes cdPulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.94); }
-}
-
-.ir-loading-sub {
-  font-size: 12px; font-weight: 300; color: var(--d);
-  letter-spacing: 1px; text-align: center;
-  max-width: 220px; line-height: 1.6;
-}
-
-.ir-loading-bar-wrap {
-  width: 180px; height: 2px;
-  background: rgba(255,255,255,0.08); border-radius: 2px;
-  overflow: hidden;
-}
-
-.ir-loading-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--a2), var(--a));
-  border-radius: 2px;
-  transition: width 1s linear;
-}
-
-.ir-loading-skip {
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--d);
-  background: none; border: 1px solid rgba(255,255,255,0.1);
-  padding: 8px 20px; border-radius: 2px; cursor: pointer;
-  transition: all 0.2s; margin-top: 4px;
-}
-.ir-loading-skip:hover {
-  color: var(--w); border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.04);
 }
 
 .ir-status-pill {
@@ -608,7 +602,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
       .catch(() => {});
   }, []);
 
-  // Countdown timer
+  // Strict Countdown timer (Non-skippable)
   useEffect(() => {
     if (isReady) return;
     if (countdown > 0) {
@@ -728,7 +722,9 @@ export default function InterviewRoom({ interviewData, onFinish }) {
         lipSyncTimeouts.current.push(timeout);
       });
     }
-    audio.play().catch(() => {});
+    audio.play().catch((e) => {
+      console.warn("Autoplay was blocked by the browser. Interaction needed.", e);
+    });
     audio.onended = () => {
       setIsSpeaking(false);
       setUserTurn(true);
@@ -793,8 +789,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     }
   }
 
-  const progress = ((COUNTDOWN_TOTAL - countdown) / COUNTDOWN_TOTAL) * 100;
-
   return (
     <>
       <style>{CSS}</style>
@@ -816,30 +810,22 @@ export default function InterviewRoom({ interviewData, onFinish }) {
         {/* ── BODY ── */}
         <div className="ir-body">
 
+          {/* ── COUNTDOWN BANNER (Top Middle) ── */}
+          {!isReady && (
+            <div className="ir-loading-banner">
+              <div className="ir-spinner" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "var(--a)" }} />
+              <div className="ir-banner-text">
+                <div className="ir-banner-title">Preparing Interview Room</div>
+                <div className="ir-banner-sub">Establishing secure video connection...</div>
+              </div>
+              <div className="ir-banner-count">{countdown}</div>
+            </div>
+          )}
+
           {/* LEFT — PAYTON */}
           <div className="ir-left" style={{ width: `${leftWidth}%` }}>
             <div className="ir-payton-area">
               <div className="ir-payton-glow" />
-
-              {/* ── COUNTDOWN OVERLAY — sits on top of payton area ── */}
-              {!isReady && (
-                <div className="ir-loading-overlay">
-                  <div className="ir-loading-label">Loading Payton</div>
-                  <div className="ir-loading-number">{countdown}</div>
-                  <div className="ir-loading-bar-wrap">
-                    <div className="ir-loading-bar" style={{ width: `${progress}%` }} />
-                  </div>
-                  <div className="ir-loading-sub">
-                    Click "Play" in Pixel Streaming to connect Payton's video feed
-                  </div>
-                  <button
-                    className="ir-loading-skip"
-                    onClick={() => setIsReady(true)}
-                  >
-                    Skip → Start Now
-                  </button>
-                </div>
-              )}
 
               {/* Status pill */}
               <div className={`ir-status-pill ${loading || isSpeaking ? "active" : ""}`}>
