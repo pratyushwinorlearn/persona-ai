@@ -1,7 +1,61 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import api from "../services/api";
 
-/* ── SVG DOODLES (matching StartInterview) ── */
+/* ── PROFESSIONAL UI ICONS ── */
+const IconMic = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+    <line x1="12" y1="19" x2="12" y2="23"></line>
+    <line x1="8" y1="23" x2="16" y2="23"></line>
+  </svg>
+);
+const IconMicOff = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+    <line x1="12" y1="19" x2="12" y2="23"></line>
+    <line x1="8" y1="23" x2="16" y2="23"></line>
+    <line x1="1" y1="1" x2="23" y2="23"></line>
+  </svg>
+);
+const IconCam = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+  </svg>
+);
+const IconCamOff = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+    <line x1="1" y1="1" x2="23" y2="23"></line>
+  </svg>
+);
+const IconSettings = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+);
+const IconEndCall = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08a.956.956 0 0 1-.29-.71c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.66c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+  </svg>
+);
+const IconFullscreen = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+  </svg>
+);
+const IconExitFullscreen = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+  </svg>
+);
+
+
+/* ── SVG DOODLES ── */
 const DoodleCircle = ({ size = 120, opacity = 0.12, className = "", style = {} }) => (
   <svg className={`doodle ${className}`} width={size} height={size} viewBox="0 0 100 100" fill="none" style={style}>
     <circle cx="50" cy="50" r="44" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity={opacity} />
@@ -80,465 +134,275 @@ const CSS = `
 
 .doodle { pointer-events: none; flex-shrink: 0; }
 
+/* ── TOP BAR ── */
 .ir-topbar {
-  height: 52px;
-  background: rgba(0,0,0,0.92);
+  height: 52px; background: rgba(0,0,0,0.92);
   border-bottom: 1px solid var(--bdr);
   display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 0 28px;
-  flex-shrink: 0; z-index: 100;
-  backdrop-filter: blur(20px);
+  justify-content: space-between; padding: 0 28px;
+  flex-shrink: 0; z-index: 100; backdrop-filter: blur(20px);
 }
-
 .ir-logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 20px; letter-spacing: 5px;
   color: var(--w); text-transform: uppercase;
 }
-
-.ir-topbar-center {
-  display: flex; align-items: center; gap: 14px;
-}
-
+.ir-topbar-center { display: flex; align-items: center; gap: 14px; }
 .ir-rec-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #ef4444;
+  width: 7px; height: 7px; border-radius: 50%; background: #ef4444;
   animation: recPulse 1.5s ease-in-out infinite;
 }
 @keyframes recPulse {
   0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
   50%      { opacity: 0.5; box-shadow: 0 0 0 4px rgba(239,68,68,0); }
 }
-
-.ir-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px; letter-spacing: 3px; color: var(--m);
-}
-
+.ir-timer { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--m); }
 .ir-qbadge {
   font-size: 10px; font-weight: 700; letter-spacing: 2px;
   text-transform: uppercase; color: var(--a);
-  background: rgba(125,249,194,0.08);
-  border: 1px solid rgba(125,249,194,0.2);
+  background: rgba(125,249,194,0.08); border: 1px solid rgba(125,249,194,0.2);
   padding: 4px 12px; border-radius: 2px;
 }
-
 .ir-end-btn {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: rgba(239,68,68,0.75);
-  background: rgba(239,68,68,0.07);
-  border: 1px solid rgba(239,68,68,0.18);
-  border-radius: 2px; padding: 7px 18px;
-  cursor: pointer; transition: all 0.2s;
+  text-transform: uppercase; color: rgba(239,68,68,0.75);
+  background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.18);
+  border-radius: 2px; padding: 7px 18px; cursor: pointer; transition: all 0.2s;
 }
 .ir-end-btn:hover {
-  background: rgba(239,68,68,0.14);
-  border-color: rgba(239,68,68,0.35);
-  color: #fca5a5;
+  background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.35); color: #fca5a5;
 }
 
 .ir-body { flex: 1; display: flex; overflow: hidden; position: relative; }
 
-/* ── NEW FLOATING TOP-MIDDLE BANNER ── */
+/* ── LOADING BANNER ── */
 .ir-loading-banner {
-  position: absolute;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(125, 249, 194, 0.25);
-  border-radius: 6px;
-  padding: 16px 30px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  z-index: 9999;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+  position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(16px);
+  border: 1px solid rgba(125, 249, 194, 0.25); border-radius: 6px;
+  padding: 16px 30px; display: flex; align-items: center; gap: 24px;
+  z-index: 9999; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
 }
-
-.ir-banner-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
+.ir-banner-text { display: flex; flex-direction: column; gap: 4px; }
 .ir-banner-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--a);
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--a);
 }
-
-.ir-banner-sub {
-  font-size: 12px;
-  color: var(--d);
-  letter-spacing: 0.5px;
-}
-
+.ir-banner-sub { font-size: 12px; color: var(--d); letter-spacing: 0.5px; }
 .ir-banner-count {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 38px;
-  color: var(--w);
-  animation: cdPulse 1s ease-in-out infinite;
-  line-height: 1;
+  font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--w);
+  animation: cdPulse 1s ease-in-out infinite; line-height: 1;
 }
-
 @keyframes cdPulse {
   0%,100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.7; transform: scale(0.95); }
 }
 
 .ir-resizer {
-  width: 4px; background: var(--bdr);
-  cursor: col-resize; flex-shrink: 0;
+  width: 4px; background: var(--bdr); cursor: col-resize; flex-shrink: 0;
   position: relative; transition: background 0.2s; z-index: 50;
 }
 .ir-resizer:hover, .ir-resizer.dragging { background: var(--a); }
 .ir-resizer::after {
-  content: ''; position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2px; height: 40px;
-  background: rgba(125,249,194,0.15); border-radius: 2px;
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 2px; height: 40px; background: rgba(125,249,194,0.15); border-radius: 2px;
 }
 
 .ir-left {
   position: relative; background: var(--c1);
-  display: flex; flex-direction: column;
-  overflow: hidden; flex-shrink: 0;
+  display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
 }
-
 .ir-payton-area {
-  flex: 1; position: relative;
-  display: flex; align-items: center;
+  flex: 1; position: relative; display: flex; align-items: center;
   justify-content: center; overflow: hidden;
 }
-
 .ir-payton-glow {
-  position: absolute; width: 500px; height: 500px;
-  border-radius: 50%;
+  position: absolute; width: 500px; height: 500px; border-radius: 50%;
   background: radial-gradient(circle, rgba(125,249,194,0.04) 0%, transparent 65%);
-  pointer-events: none;
-  animation: glowPulse 5s ease-in-out infinite;
-}
-@keyframes glowPulse {
-  0%,100% { transform: scale(1); opacity: 0.6; }
-  50%      { transform: scale(1.12); opacity: 1; }
+  pointer-events: none; animation: glowPulse 5s ease-in-out infinite;
 }
 
 .ir-status-pill {
-  position: absolute; top: 18px; left: 50%;
-  transform: translateX(-50%);
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.75); backdrop-filter: blur(16px);
-  border: 1px solid var(--bdr); border-radius: 2px;
-  padding: 6px 16px; font-size: 10px; font-weight: 600;
-  letter-spacing: 2px; text-transform: uppercase;
-  color: var(--d); z-index: 10; white-space: nowrap;
-  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--bdr); border-radius: 2px; padding: 6px 16px;
+  font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--d); z-index: 10; white-space: nowrap; display: flex; align-items: center; gap: 8px;
 }
-.ir-status-pill.active {
-  border-color: rgba(125,249,194,0.25); color: var(--a);
-}
+.ir-status-pill.active { border-color: rgba(125,249,194,0.25); color: var(--a); }
 .ir-status-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: currentColor;
+  width: 5px; height: 5px; border-radius: 50%; background: currentColor;
   animation: recPulse 1.2s ease-in-out infinite;
 }
 
 .ir-speaking {
-  position: absolute; bottom: 82px; left: 50%;
-  transform: translateX(-50%);
+  position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: 10px;
   background: rgba(0,0,0,0.75); backdrop-filter: blur(16px);
-  border: 1px solid var(--bdr); border-radius: 2px;
-  padding: 8px 18px; z-index: 10;
-  opacity: 0; transition: opacity 0.3s;
+  border: 1px solid var(--bdr); border-radius: 2px; padding: 8px 18px;
+  z-index: 10; opacity: 0; transition: opacity 0.3s;
 }
 .ir-speaking.active { opacity: 1; }
 .ir-speaking-bars { display: flex; gap: 3px; align-items: center; }
-.ir-speaking-bar {
-  width: 2px; background: var(--a); border-radius: 2px;
-  animation: barBounce 0.8s ease-in-out infinite;
-}
+.ir-speaking-bar { width: 2px; background: var(--a); border-radius: 2px; animation: barBounce 0.8s ease-in-out infinite; }
 .ir-speaking-bar:nth-child(1) { height: 8px;  animation-delay: 0s;    }
 .ir-speaking-bar:nth-child(2) { height: 16px; animation-delay: 0.1s;  }
 .ir-speaking-bar:nth-child(3) { height: 12px; animation-delay: 0.2s;  }
 .ir-speaking-bar:nth-child(4) { height: 20px; animation-delay: 0.05s; }
 .ir-speaking-bar:nth-child(5) { height: 10px; animation-delay: 0.15s; }
-@keyframes barBounce {
-  0%,100% { transform: scaleY(0.4); }
-  50%      { transform: scaleY(1); }
-}
-.ir-speaking-text {
-  font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--m);
-}
+@keyframes barBounce { 0%,100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+.ir-speaking-text { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--m); }
 
 .ir-nametag {
-  position: absolute; bottom: 82px; left: 18px;
+  position: absolute; bottom: 100px; left: 18px;
   background: rgba(0,0,0,0.72); backdrop-filter: blur(12px);
-  border: 1px solid var(--bdr);
-  border-left: 2px solid var(--a);
-  border-radius: 0 2px 2px 0;
-  padding: 8px 14px; z-index: 10;
+  border: 1px solid var(--bdr); border-left: 2px solid var(--a);
+  border-radius: 0 2px 2px 0; padding: 8px 14px; z-index: 10;
 }
-.ir-nametag-name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px; letter-spacing: 3px; color: var(--w);
-}
-.ir-nametag-sub {
-  font-size: 10px; font-weight: 500; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--a); margin-top: 1px;
-}
+.ir-nametag-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; color: var(--w); }
+.ir-nametag-sub { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--a); margin-top: 1px; }
 
 .ir-pip {
   position: absolute; top: 18px; right: 18px;
-  width: 148px; height: 104px; border-radius: 2px;
-  overflow: hidden; border: 1px solid var(--b2);
-  background: var(--bg); z-index: 20;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  width: 148px; height: 104px; border-radius: 8px;
+  overflow: hidden; border: 1px solid var(--b2); background: var(--bg);
+  z-index: 20; box-shadow: 0 8px 32px rgba(0,0,0,0.7);
 }
 .ir-pip video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 .ir-pip-off {
-  width: 100%; height: 100%;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 6px;
-  background: var(--c1);
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px; background: var(--c1);
 }
 .ir-pip-off-icon { font-size: 20px; opacity: 0.25; }
-.ir-pip-off-text {
-  font-size: 9px; font-weight: 600; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--d);
-}
-.ir-pip-name {
-  position: absolute; bottom: 6px; left: 8px;
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--w);
-  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
-}
+.ir-pip-off-text { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--d); }
+.ir-pip-name { position: absolute; bottom: 6px; left: 8px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--w); text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
 
+/* ── CONTROLS (Updated Circular Style) ── */
 .ir-controls {
-  height: 70px; background: rgba(0,0,0,0.9);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--bdr);
-  display: flex; align-items: center;
+  height: 80px; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--bdr); display: flex; align-items: center;
   justify-content: center; gap: 16px; flex-shrink: 0;
 }
-
 .ctrl-btn {
-  width: 42px; height: 42px; border-radius: 2px;
-  border: 1px solid var(--bdr);
-  background: rgba(255,255,255,0.03);
-  color: var(--w); font-size: 15px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; position: relative;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
+  color: var(--w); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s; position: relative;
 }
-.ctrl-btn:hover {
-  background: rgba(125,249,194,0.07);
-  border-color: rgba(125,249,194,0.2);
-  transform: translateY(-1px);
-}
-.ctrl-btn.off {
-  background: rgba(239,68,68,0.08);
-  border-color: rgba(239,68,68,0.2);
-}
-.ctrl-btn.off:hover { background: rgba(239,68,68,0.15); }
+.ctrl-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+.ctrl-btn.off { background: #ea4335; border-color: #ea4335; color: white; }
+.ctrl-btn.off:hover { background: #d93025; }
 .ctrl-btn-label {
-  position: absolute; bottom: -18px; left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px; font-weight: 600; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--d); white-space: nowrap;
+  position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--d); white-space: nowrap; pointer-events: none; transition: opacity 0.2s;
 }
-
 .ctrl-btn-end {
-  width: 46px; height: 46px; border-radius: 2px;
-  border: none; background: #ef4444; color: white;
-  font-size: 17px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  box-shadow: 0 4px 20px rgba(239,68,68,0.35);
+  width: 58px; height: 58px; border-radius: 50%; border: none;
+  background: #ea4335; color: white; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(234,67,53,0.35); margin: 0 8px;
 }
 .ctrl-btn-end:hover {
-  background: #dc2626; transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(239,68,68,0.5);
+  background: #d93025; transform: translateY(-2px); box-shadow: 0 6px 28px rgba(234,67,53,0.5);
 }
 
 .ir-right {
-  flex: 1; display: flex; flex-direction: column;
-  background: #070605;
+  flex: 1; display: flex; flex-direction: column; background: #070605;
   border-left: 1px solid var(--bdr); overflow: hidden;
 }
-
 .ir-right-header {
-  padding: 18px 26px 14px;
-  border-bottom: 1px solid var(--bdr);
-  flex-shrink: 0; display: flex;
-  align-items: center; justify-content: space-between;
+  padding: 18px 26px 14px; border-bottom: 1px solid var(--bdr);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
 }
-.ir-right-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 13px; letter-spacing: 4px;
-  text-transform: uppercase; color: var(--d);
-}
+.ir-right-title { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: var(--d); }
 
 .ir-question-wrap {
-  padding: 22px 26px;
-  border-bottom: 1px solid var(--bdr);
-  flex-shrink: 0; position: relative;
+  padding: 22px 26px; border-bottom: 1px solid var(--bdr); flex-shrink: 0; position: relative;
   background: linear-gradient(180deg, rgba(125,249,194,0.02) 0%, transparent 100%);
 }
-.ir-question-wrap::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 2px;
-  background: linear-gradient(180deg, var(--a) 0%, transparent 100%);
-}
-.ir-question-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--a);
-  margin-bottom: 12px;
-  display: flex; align-items: center; gap: 10px;
-}
+.ir-question-wrap::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--a) 0%, transparent 100%); }
+.ir-question-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--a); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
 .ir-question-label::after { content: ''; flex: 1; height: 1px; background: var(--bdr); }
-.ir-question-text {
-  font-size: 16px; line-height: 1.7; color: var(--w); font-weight: 400;
-}
+.ir-question-text { font-size: 16px; line-height: 1.7; color: var(--w); font-weight: 400; }
 
 .ir-answer-wrap {
-  flex: 1; padding: 22px 26px;
-  display: flex; flex-direction: column; gap: 14px;
-  overflow-y: auto;
+  flex: 1; padding: 22px 26px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
 }
 .ir-answer-wrap::-webkit-scrollbar { width: 3px; }
 .ir-answer-wrap::-webkit-scrollbar-track { background: transparent; }
 .ir-answer-wrap::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 2px; }
 
-.ir-answer-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--d);
-  display: flex; align-items: center; gap: 10px;
-}
+.ir-answer-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--d); display: flex; align-items: center; gap: 10px; }
 .ir-answer-label::after { content: ''; flex: 1; height: 1px; background: var(--bdr); }
 
 .ir-textarea {
-  flex: 1; min-height: 140px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--bdr); border-radius: 2px;
-  padding: 14px 16px;
-  font-size: 14px; font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 400; color: var(--w);
-  resize: none; outline: none; line-height: 1.65;
+  flex: 1; min-height: 140px; background: rgba(255,255,255,0.03);
+  border: 1px solid var(--bdr); border-radius: 6px; padding: 14px 16px;
+  font-size: 14px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400;
+  color: var(--w); resize: none; outline: none; line-height: 1.65;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 .ir-textarea::placeholder { color: var(--d); font-style: italic; }
 .ir-textarea:focus {
-  border-color: var(--b2);
-  box-shadow: 0 0 0 3px rgba(125,249,194,0.05),
-              inset 0 1px 0 rgba(125,249,194,0.04);
+  border-color: var(--b2); box-shadow: 0 0 0 3px rgba(125,249,194,0.05), inset 0 1px 0 rgba(125,249,194,0.04);
   background: rgba(125,249,194,0.03);
 }
 .ir-textarea:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.ir-submit-row {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 12px;
-}
-.ir-char-count {
-  font-size: 11px; font-weight: 400;
-  letter-spacing: 0.5px; color: var(--d);
-}
+.ir-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ir-char-count { font-size: 11px; font-weight: 400; letter-spacing: 0.5px; color: var(--d); }
 
 .ir-submit-btn {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 15px; letter-spacing: 3px;
-  padding: 12px 28px; border: none; border-radius: 2px;
-  background: var(--w); color: var(--bg);
-  cursor: pointer; transition: all 0.2s;
-  display: flex; align-items: center; gap: 10px;
-  box-shadow: 0 4px 20px rgba(255,255,255,0.08);
+  font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 3px;
+  padding: 12px 28px; border: none; border-radius: 4px;
+  background: var(--w); color: var(--bg); cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(255,255,255,0.08);
 }
 .ir-submit-btn:hover:not(:disabled) {
-  background: var(--a); color: var(--bg);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(125,249,194,0.3);
+  background: var(--a); color: var(--bg); transform: translateY(-1px); box-shadow: 0 6px 28px rgba(125,249,194,0.3);
 }
 .ir-submit-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
 .ir-spinner {
-  width: 13px; height: 13px;
-  border: 2px solid rgba(0,0,0,0.2);
-  border-top-color: var(--bg);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  width: 13px; height: 13px; border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: var(--bg); border-radius: 50%; animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.ir-feedback {
-  margin: 0 26px 18px;
-  background: rgba(125,249,194,0.03);
-  border: 1px solid var(--b2);
-  border-top: 2px solid var(--a);
-  border-radius: 0 0 2px 2px;
-  padding: 20px 22px; flex-shrink: 0;
+/* ── FULLSCREEN OVERRIDES ── */
+.ir-root.is-fullscreen .ir-topbar { display: none; }
+.ir-root.is-fullscreen .ir-resizer { display: none; }
+.ir-root.is-fullscreen .ir-left {
+  position: absolute; inset: 0; width: 100% !important; z-index: 1; border: none;
 }
-.ir-feedback-header {
-  display: flex; align-items: center;
-  justify-content: space-between; margin-bottom: 12px;
+.ir-root.is-fullscreen .ir-right {
+  position: absolute; right: 24px; top: 24px; bottom: 120px; width: 400px;
+  z-index: 10; background: rgba(7, 6, 5, 0.75); backdrop-filter: blur(24px);
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
+  box-shadow: 0 10px 50px rgba(0,0,0,0.8); display: flex; flex-direction: column;
 }
-.ir-feedback-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 13px; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--a);
+.ir-root.is-fullscreen .ir-controls {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 20; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(24px);
+  border-radius: 100px; height: 76px; padding: 0 32px; gap: 16px; border: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
 }
-.ir-feedback-status {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 4px 12px; border-radius: 2px;
+.ir-root.is-fullscreen .ctrl-btn-label { display: none; /* Hide labels in fullscreen for cleaner look */ }
+.ir-root.is-fullscreen .ir-pip {
+  top: auto; right: auto; bottom: 24px; left: 24px;
+  width: 280px; height: 180px; border-radius: 12px; z-index: 15;
+  border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.6);
 }
-.ir-feedback-status.pass {
-  background: rgba(34,197,94,0.08); color: #86efac;
-  border: 1px solid rgba(34,197,94,0.2);
+.ir-root.is-fullscreen .ir-question-wrap,
+.ir-root.is-fullscreen .ir-answer-wrap {
+  background: transparent; border-color: rgba(255,255,255,0.08);
 }
-.ir-feedback-status.fail {
-  background: rgba(239,68,68,0.08); color: #fca5a5;
-  border: 1px solid rgba(239,68,68,0.2);
+.ir-root.is-fullscreen .ir-textarea {
+  background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.15);
 }
-.ir-feedback-text {
-  font-size: 13px; font-weight: 300;
-  color: var(--m); line-height: 1.65; margin-bottom: 12px;
-}
-.ir-feedback-tags { display: flex; gap: 8px; flex-wrap: wrap; }
-.ir-tag {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 4px 12px; border-radius: 2px;
-  background: rgba(125,249,194,0.06);
-  color: var(--a); border: 1px solid rgba(125,249,194,0.18);
-}
-
-.ir-view-summary-btn {
-  margin: 0 26px 22px; width: calc(100% - 52px);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px; letter-spacing: 4px;
-  padding: 15px; border: none; border-radius: 2px;
-  background: var(--w); color: var(--bg);
-  cursor: pointer; transition: all 0.2s;
-  box-shadow: 0 4px 24px rgba(255,255,255,0.08);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.ir-view-summary-btn:hover {
-  background: var(--a); color: var(--bg);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(125,249,194,0.35);
-}
-
-.ir-doodle-strip {
-  padding: 0 26px 18px;
-  display: flex; gap: 16px;
-  opacity: 0.2; flex-shrink: 0;
-}
+.ir-root.is-fullscreen .ir-doodle-strip { display: none; }
 `;
 
 const COUNTDOWN_TOTAL = 18;
@@ -572,6 +436,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   const [countdown, setCountdown]           = useState(COUNTDOWN_TOTAL);
   const [isReady, setIsReady]               = useState(false);
   const [leftWidth, setLeftWidth]           = useState(62);
+  const [isFullscreen, setIsFullscreen]     = useState(false);
   const isDragging  = useRef(false);
   const startX      = useRef(0);
   const startWidth  = useRef(0);
@@ -602,7 +467,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
       .catch(() => {});
   }, []);
 
-  // Strict Countdown timer (Non-skippable)
+  // Strict Countdown timer
   useEffect(() => {
     if (isReady) return;
     if (countdown > 0) {
@@ -624,19 +489,40 @@ export default function InterviewRoom({ interviewData, onFinish }) {
     }
   }, [isReady]);
 
-  // Cleanup
   useEffect(() => {
     return () => lipSyncTimeouts.current.forEach(t => clearTimeout(t));
   }, []);
 
+  // Fullscreen event listener (catches if user presses ESC)
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      setIsFullscreen(false);
+    }
+  };
+
   // Resize logic
   const onMouseDown = useCallback((e) => {
+    if (isFullscreen) return; // Disable resizer in fullscreen
     isDragging.current = true;
     startX.current     = e.clientX;
     startWidth.current = leftWidth;
     document.body.style.cursor     = "col-resize";
     document.body.style.userSelect = "none";
-  }, [leftWidth]);
+  }, [leftWidth, isFullscreen]);
 
   useEffect(() => {
     const onMove = (e) => {
@@ -792,7 +678,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
   return (
     <>
       <style>{CSS}</style>
-      <div className="ir-root">
+      <div className={`ir-root ${isFullscreen ? 'is-fullscreen' : ''}`}>
 
         {/* ── TOP BAR ── */}
         <div className="ir-topbar">
@@ -886,7 +772,9 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                   <video ref={videoRef} autoPlay muted playsInline />
                 ) : (
                   <div className="ir-pip-off">
-                    <div className="ir-pip-off-icon">📷</div>
+                    <div className="ir-pip-off-icon">
+                      <IconCamOff />
+                    </div>
                     <div className="ir-pip-off-text">Camera off</div>
                   </div>
                 )}
@@ -894,31 +782,36 @@ export default function InterviewRoom({ interviewData, onFinish }) {
               </div>
             </div>
 
-            {/* CONTROLS */}
+            {/* CONTROLS (Updated circular layout) */}
             <div className="ir-controls">
               <div style={{ position:"relative" }}>
                 <button className={`ctrl-btn ${micOn ? "" : "off"}`} onClick={() => setMicOn(m => !m)}>
-                  {micOn ? "🎙️" : "🔇"}
+                  {micOn ? <IconMic /> : <IconMicOff />}
                 </button>
                 <span className="ctrl-btn-label">{micOn ? "Mute" : "Unmuted"}</span>
               </div>
               <div style={{ position:"relative" }}>
                 <button className={`ctrl-btn ${camOn ? "" : "off"}`} onClick={() => setCamOn(c => !c)}>
-                  {camOn ? "📹" : "🚫"}
+                  {camOn ? <IconCam /> : <IconCamOff />}
                 </button>
                 <span className="ctrl-btn-label">{camOn ? "Camera" : "Cam off"}</span>
               </div>
+              
+              <button className="ctrl-btn-end" onClick={() => onFinish(interviewData.interviewId)}>
+                <IconEndCall />
+              </button>
+
               <div style={{ position:"relative" }}>
-                <button className="ctrl-btn">⚙️</button>
+                <button className="ctrl-btn">
+                  <IconSettings />
+                </button>
                 <span className="ctrl-btn-label">Settings</span>
               </div>
-              <div style={{ position:"relative", margin:"0 8px" }}>
-                <button className="ctrl-btn-end" onClick={() => onFinish(interviewData.interviewId)}>📵</button>
-                <span className="ctrl-btn-label" style={{ color:"#fca5a5" }}>End</span>
-              </div>
               <div style={{ position:"relative" }}>
-                <button className="ctrl-btn">⛶</button>
-                <span className="ctrl-btn-label">Fullscreen</span>
+                <button className="ctrl-btn" onClick={toggleFullscreen}>
+                  {isFullscreen ? <IconExitFullscreen /> : <IconFullscreen />}
+                </button>
+                <span className="ctrl-btn-label">{isFullscreen ? "Exit" : "Fullscreen"}</span>
               </div>
             </div>
           </div>
@@ -926,7 +819,7 @@ export default function InterviewRoom({ interviewData, onFinish }) {
           {/* RESIZER */}
           <div className="ir-resizer" onMouseDown={onMouseDown} />
 
-          {/* RIGHT — INTERACTION */}
+          {/* RIGHT — INTERACTION (Becomes floating sidebar in fullscreen) */}
           <div className="ir-right">
             <div className="ir-right-header">
               <div className="ir-right-title">Interview Panel</div>
@@ -992,13 +885,6 @@ export default function InterviewRoom({ interviewData, onFinish }) {
                 View Full Summary →
               </button>
             )}
-
-            <div className="ir-doodle-strip">
-              <DoodleGrid  style={{ width:60, height:60 }} />
-              <DoodleCircle size={44} opacity={0.5} />
-              <DoodleCross  size={28} />
-              <DoodleCircle size={32} opacity={0.4} />
-            </div>
           </div>
         </div>
       </div>
