@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import api from "../services/api";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -151,6 +151,10 @@ export default function StartInterview({ onStart }) {
   const cursorRef    = useRef(null);
   const cursorDotRef = useRef(null);
   const spotlightRef = useRef(null);
+  
+  // Canvas Sequence Refs
+  const canvasRef = useRef(null);
+  const FRAME_COUNT = 210; // Update this if you have more/fewer frames
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -161,95 +165,94 @@ export default function StartInterview({ onStart }) {
     const scroller = wrapRef.current;
     if (!scroller) return;
 
-    const spotlight = spotlightRef.current;
-    const onMouseMove = (e) => {
-      if (spotlight) {
-        gsap.to(spotlight, {
-          x: e.clientX - 300,
-          y: e.clientY - 300,
-          duration: 0.8,
-          ease: "power2.out",
-        });
-      }
-    };
-    window.addEventListener("mousemove", onMouseMove);
-
-    const ctx = gsap.context(() => {
+    const ctxGSAP = gsap.context(() => {
       ScrollTrigger.defaults({ scroller });
 
-      const bangTl = gsap.timeline({
+      // ── CANVAS IMAGE SEQUENCE LOGIC ─────────────────────────────────
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+      
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Handle Resize smoothly
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        render(images[playhead.frame]);
+      });
+
+      const images = [];
+      const playhead = { frame: 0 };
+
+      // Preload all 210 images
+      for (let i = 0; i < FRAME_COUNT; i++) {
+        const img = new Image();
+        // Uses padStart to make "001", "015", "210", etc.
+        img.src = `/sequence/ezgif-frame-${String(i + 1).padStart(3, "0")}.jpg`;
+        images.push(img);
+      }
+
+      // Draw function that mimics object-fit: cover
+      function render(img) {
+        if (!img || !img.complete) return;
+        const hRatio = canvas.width / img.width;
+        const vRatio = canvas.height / img.height;
+        const ratio = Math.max(hRatio, vRatio);
+        const centerShift_x = (canvas.width - img.width * ratio) / 2;
+        const centerShift_y = (canvas.height - img.height * ratio) / 2;
+        
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(
+          img, 0, 0, img.width, img.height,
+          centerShift_x, centerShift_y, img.width * ratio, img.height * ratio
+        );
+      }
+
+      // Draw the first frame as soon as it loads
+      images[0].onload = () => render(images[0]);
+
+      // ScrollTrigger to scrub through the frames
+      gsap.to(playhead, {
+        frame: FRAME_COUNT - 1,
+        snap: "frame",
+        ease: "none",
         scrollTrigger: {
-          trigger: "#bang",
-          scroller,
+          trigger: "#hero-container",
+          scroller: scroller,
           start: "top top",
-          end: "+=2200",
+          end: "+=3000", // Makes the sequence last for 3000px of scrolling
           pin: true,
-          scrub: 1.2,
-          anticipatePin: 1,
+          scrub: 0.5,
         },
+        onUpdate: () => render(images[playhead.frame])
       });
 
-      bangTl
-        .set("#bang-cosmos",    { opacity: 0.06, scale: 1.05, filter: "brightness(0.08) saturate(0.2)" })
-        .set("#bang-core",      { scale: 0, opacity: 0 })
-        .set("#bang-rings > *", { scale: 0, opacity: 0 })
-        .set(".bp",             { scale: 0, opacity: 0 })
-        .set("#bang-title .bw", { y: 110, opacity: 0, rotationX: -55 })
-        .set("#bang-sub",       { y: 44, opacity: 0 })
-        .set("#bang-cta",       { y: 22, opacity: 0, scale: 0.88 })
-        .set("#bang-eyebrow",   { opacity: 0, y: -24 })
-        .set(".bang-doodle",    { opacity: 0, scale: 0.6 })
-        .to("#bang-core",   { scale: 1.3, opacity: 1, duration: 0.2, ease: "power4.out" }, 0)
-        .to("#bang-cosmos", { filter: "brightness(5) saturate(2.8) blur(3px)", duration: 0.14, ease: "power3.in" }, 0.04)
-        .to("#bang-flash",  { opacity: 1, duration: 0.055, ease: "power4.out" }, 0.12)
-        .to("#bang-cosmos", { filter: "brightness(0.4) saturate(1.2) blur(0px)", duration: 0.2, ease: "power2.out" }, 0.17)
-        .to("#bang-flash",  { opacity: 0, duration: 0.2, ease: "power2.out" }, 0.17)
-        .to("#ring1", { scale: 2.6,  opacity: 0.95, duration: 0.2,  ease: "power3.out" }, 0.17)
-        .to("#ring2", { scale: 4.8,  opacity: 0.6,  duration: 0.25, ease: "power2.out" }, 0.20)
-        .to("#ring3", { scale: 8,    opacity: 0.3,  duration: 0.32, ease: "power1.out" }, 0.23)
-        .to("#ring4", { scale: 14,   opacity: 0.12, duration: 0.40, ease: "none"       }, 0.26)
-        .to("#ring1", { opacity: 0, duration: 0.18 }, 0.35)
-        .to("#ring2", { opacity: 0, duration: 0.20 }, 0.37)
-        .to("#ring3", { opacity: 0, duration: 0.24 }, 0.39)
-        .to("#ring4", { opacity: 0, duration: 0.30 }, 0.41)
-        .to(".bp", { scale: 1, opacity: 1, stagger: { each: 0.006, from: "center" }, duration: 0.14, ease: "back.out(3)" }, 0.17)
-        .to(".bp", {
-          x: (i) => Math.sin(i * 137.508 * Math.PI / 180) * (300 + (i % 5) * 65),
-          y: (i) => Math.cos(i * 137.508 * Math.PI / 180) * (220 + (i % 4) * 58),
-          opacity: 0,
-          stagger: { each: 0.004, from: "random" },
-          duration: 0.55, ease: "power2.in",
-        }, 0.28)
-        .to("#bang-cosmos", { opacity: 0.92, scale: 1.22, filter: "brightness(0.95) saturate(1.4)", duration: 0.45, ease: "power1.out" }, 0.36)
-        .to("#bang-nebula", { opacity: 0.6,  scale: 1.15, duration: 0.5, ease: "power1.out" }, 0.33)
-        .to("#bang-core",   { scale: 0, opacity: 0, duration: 0.18 }, 0.33)
-        .to("#bang-eyebrow", { y: 0, opacity: 1, duration: 0.22 }, 0.41)
-        .to("#bang-title .bw", { y: 0, opacity: 1, rotationX: 0, stagger: 0.065, duration: 0.38, ease: "power3.out" }, 0.45)
-        .to(".bang-doodle",    { opacity: 1, scale: 1, stagger: 0.04, duration: 0.3, ease: "back.out(1.4)" }, 0.58)
-        .to("#bang-sub",   { y: 0, opacity: 1, duration: 0.28 }, 0.64)
-        .to("#bang-cta",   { y: 0, opacity: 1, scale: 1, duration: 0.22, ease: "back.out(1.5)" }, 0.72)
-        .to("#bang-cosmos", { scale: 1.32, duration: 0.5 }, 0.78);
-
-      gsap.to("#bang-content", {
-        y: -18,
-        duration: 3.5,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: 2,
+      // Fade out the Overlay text as the user starts scrolling
+      gsap.to("#hero-overlay", {
+        opacity: 0,
+        y: -100,
+        scrollTrigger: {
+          trigger: "#hero-container",
+          scroller: scroller,
+          start: "top top",
+          end: "+=800",
+          scrub: true,
+        }
       });
+      // ────────────────────────────────────────────────────────────────
 
-      gsap.utils.toArray(".bang-doodle").forEach((el, i) => {
-        gsap.to(el, {
-          y: -14 - i * 4,
-          rotation: i % 2 === 0 ? 8 : -8,
-          duration: 2.8 + i * 0.4,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          delay: i * 0.3,
-        });
-      });
+      // Cursor spotlight
+      const spotlight = spotlightRef.current;
+      const onMouseMove = (e) => {
+        if (spotlight) {
+          gsap.to(spotlight, {
+            x: e.clientX - 300, y: e.clientY - 300,
+            duration: 0.8, ease: "power2.out",
+          });
+        }
+      };
+      window.addEventListener("mousemove", onMouseMove);
 
       secRefs.current.forEach((sec, i) => {
         if (!sec) return;
@@ -262,11 +265,7 @@ export default function StartInterview({ onStart }) {
       });
 
       ScrollTrigger.create({
-        trigger: "#main-wrap",
-        scroller,
-        start: "top top",
-        end: "+=600",
-        scrub: true,
+        trigger: "#main-wrap", scroller, start: "top top", end: "+=600", scrub: true,
         onUpdate: self => {
           const p = self.progress;
           gsap.set("#sticky-nav", {
@@ -288,8 +287,7 @@ export default function StartInterview({ onStart }) {
           { y: 80, opacity: 0, rotationX: -60, transformPerspective: 600, filter: "blur(6px)" },
           {
             y: 0, opacity: 1, rotationX: 0, filter: "blur(0px)",
-            stagger: { each: 0.018, from: "start" },
-            duration: 0.55, ease: "power3.out",
+            stagger: { each: 0.018, from: "start" }, duration: 0.55, ease: "power3.out",
             scrollTrigger: { trigger: el, scroller, start: "top 85%", end: "top 35%", scrub: 0.6 },
           }
         );
@@ -308,8 +306,7 @@ export default function StartInterview({ onStart }) {
 
       gsap.utils.toArray(".sec-sub").forEach(el => {
         gsap.fromTo(el, { y: 38, opacity: 0, filter: "blur(8px)" }, {
-          y: 0, opacity: 1, filter: "blur(0px)",
-          scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 56%", scrub: 0.5 },
+          y: 0, opacity: 1, filter: "blur(0px)", scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 56%", scrub: 0.5 },
         });
       });
 
@@ -319,10 +316,8 @@ export default function StartInterview({ onStart }) {
           gsap.fromTo(card,
             { clipPath: "inset(100% 0% 0% 0%)", opacity: 0, y: 40 },
             {
-              clipPath: "inset(0% 0% 0% 0%)", opacity: 1, y: 0,
-              duration: 0.7, ease: "power3.out",
-              scrollTrigger: { trigger: card, scroller, start: "top 90%", end: "top 55%", scrub: 0.7 },
-              delay: i * 0.04,
+              clipPath: "inset(0% 0% 0% 0%)", opacity: 1, y: 0, duration: 0.7, ease: "power3.out",
+              scrollTrigger: { trigger: card, scroller, start: "top 90%", end: "top 55%", scrub: 0.7 }, delay: i * 0.04,
             }
           );
         });
@@ -333,37 +328,23 @@ export default function StartInterview({ onStart }) {
           const r = card.getBoundingClientRect();
           const x = (e.clientX - r.left) / r.width  - 0.5;
           const y = (e.clientY - r.top)  / r.height - 0.5;
-          gsap.to(card, {
-            rotationY: x * 12, rotationX: -y * 10, transformPerspective: 900,
-            duration: 0.35, ease: "power2.out",
-          });
+          gsap.to(card, { rotationY: x * 12, rotationX: -y * 10, transformPerspective: 900, duration: 0.35, ease: "power2.out" });
           const spotlight = card.querySelector(".card-spotlight");
-          if (spotlight) {
-            gsap.to(spotlight, {
-              opacity: 1, x: e.clientX - r.left - 150, y: e.clientY - r.top  - 150,
-              duration: 0.3, ease: "power2.out",
-            });
-          }
+          if (spotlight) { gsap.to(spotlight, { opacity: 1, x: e.clientX - r.left - 150, y: e.clientY - r.top  - 150, duration: 0.3, ease: "power2.out" }); }
         };
         const onLeave = () => {
           gsap.to(card, { rotationY: 0, rotationX: 0, duration: 0.6, ease: "elastic.out(1, 0.5)" });
           const spotlight = card.querySelector(".card-spotlight");
           if (spotlight) gsap.to(spotlight, { opacity: 0, duration: 0.3 });
         };
-        card.addEventListener("mousemove", onMove);
-        card.addEventListener("mouseleave", onLeave);
+        card.addEventListener("mousemove", onMove); card.addEventListener("mouseleave", onLeave);
       });
 
       gsap.utils.toArray(".sec-doodle").forEach((el, i) => {
-        gsap.fromTo(el,
-          { opacity: 0, scale: 0.7, rotation: -15 },
-          { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.6)", scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 55%", scrub: 0.5 } }
-        );
+        gsap.fromTo(el, { opacity: 0, scale: 0.7, rotation: -15 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.6)", scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 55%", scrub: 0.5 } });
         ScrollTrigger.create({
           trigger: el, scroller, start: "top 88%", once: true,
-          onEnter: () => {
-            gsap.to(el, { y: -10 - (i % 3) * 6, rotation: i % 2 === 0 ? 6 : -5, duration: 2.2 + i * 0.3, ease: "sine.inOut", yoyo: true, repeat: -1, delay: i * 0.2 });
-          },
+          onEnter: () => { gsap.to(el, { y: -10 - (i % 3) * 6, rotation: i % 2 === 0 ? 6 : -5, duration: 2.2 + i * 0.3, ease: "sine.inOut", yoyo: true, repeat: -1, delay: i * 0.2 }); },
         });
       });
 
@@ -473,8 +454,6 @@ export default function StartInterview({ onStart }) {
         gsap.fromTo(wm, { x: 80, opacity: 0 }, { x: 0, opacity: 1, scrollTrigger: { trigger: sec, scroller, start: "top 70%", end: "top 20%", scrub: 1 } });
       });
 
-      gsap.to("#scroll-hint", { opacity: 0, y: 12, scrollTrigger: { trigger: "#bang", scroller, start: "top top", end: "+=300", scrub: true } });
-
     }, wrapRef);
 
     /* ══════════════════════════════════════════════
@@ -484,10 +463,7 @@ export default function StartInterview({ onStart }) {
     const cursorDot = cursorDotRef.current;
     const wrap      = wrapRef.current;
 
-    if (!cursor || !cursorDot) return () => {
-      ctx.revert();
-      window.removeEventListener("mousemove", onMouseMove);
-    };
+    if (!cursor || !cursorDot) return () => ctxGSAP.revert();
 
     let mouseX = 0, mouseY = 0;
     let posX = 0, posY = 0;
@@ -529,10 +505,10 @@ export default function StartInterview({ onStart }) {
     });
 
     return () => {
-      ctx.revert();
+      ctxGSAP.revert();
       cancelAnimationFrame(rafId);
       wrap.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("resize", () => {});
       btns.forEach(el => {
         el.removeEventListener("mouseenter", onEnterBtn);
         el.removeEventListener("mouseleave", onLeaveBtn);
@@ -567,13 +543,12 @@ export default function StartInterview({ onStart }) {
     setAuthLoading(true);
 
     try {
-      // A. Handle OTP Verification
       if (showOtpInput) {
         const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/verify-otp`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email: authEmail, otp })
-}); 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: authEmail, otp })
+        }); 
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.error);
@@ -585,16 +560,15 @@ export default function StartInterview({ onStart }) {
         return;
       }
 
-      // B. Handle Register / Login
       const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
       const payload = { email: authEmail, password: authPass };
       if (authMode === 'register') payload.name = authName;
 
       const res = await fetch(`https://persona-ai-production-ac95.up.railway.app${endpoint}`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload)
-});
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
       const data = await res.json();
 
@@ -606,7 +580,6 @@ export default function StartInterview({ onStart }) {
           setIsAuthenticated(true);
           setAuthMode(null); 
         } else {
-          // It's a successful registration, ask for OTP!
           setShowOtpInput(true);
         }
       }
@@ -624,8 +597,8 @@ export default function StartInterview({ onStart }) {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/history`, {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if(res.ok) {
         const data = await res.json();
         setHistoryData(data);
@@ -645,8 +618,8 @@ export default function StartInterview({ onStart }) {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/history/${id}`, {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if(res.ok) {
         const data = await res.json();
         setSelectedInterview(data);
@@ -677,11 +650,6 @@ export default function StartInterview({ onStart }) {
       ))}
     </h2>
   );
-
-  const PARTICLES = Array.from({ length: 50 }, (_, i) => ({
-    i, size: 2 + (i % 5),
-    color: i % 3 === 0 ? "#7DF9C2" : i % 3 === 1 ? "#4F8EF7" : "#fff",
-  }));
 
   return (
     <>
@@ -847,30 +815,11 @@ export default function StartInterview({ onStart }) {
         <div id="cursor-dot"  ref={cursorDotRef} />
 
         {/* ═══════════════════════════════════
-            BIG BANG HERO
+            NEW HERO — CANVAS SEQUENCE
         ═══════════════════════════════════ */}
-        <div id="bang">
-          <div id="bang-cosmos" style={{ backgroundImage: `url(${IMGS.cosmos})` }} />
-          <div id="bang-nebula" style={{ backgroundImage: `url(${IMGS.nebula})`, opacity: 0 }} />
-          <div id="bang-flash" />
-          <div id="bang-rings">
-            <div id="ring1" className="bring" style={{ width:120, height:120, borderColor:"rgba(125,249,194,0.9)" }} />
-            <div id="ring2" className="bring" style={{ width:240, height:240, borderColor:"rgba(79,142,247,0.65)" }} />
-            <div id="ring3" className="bring" style={{ width:420, height:420, borderColor:"rgba(255,255,255,0.35)" }} />
-            <div id="ring4" className="bring" style={{ width:680, height:680, borderColor:"rgba(255,255,255,0.12)" }} />
-          </div>
-          <div id="bang-core" />
-          <div id="bang-parts">
-            {PARTICLES.map(({ i, size, color }) => (
-              <div key={i} className="bp" style={{ width:size, height:size, background:color }} />
-            ))}
-          </div>
-
-          <DoodleCircle className="bang-doodle" size={200} opacity={0.1} style={{ position:"absolute", top:"8%", right:"6%", pointerEvents:"none" }} />
-          <DoodleGrid   className="bang-doodle" style={{ position:"absolute", bottom:"10%", right:"4%", pointerEvents:"none", opacity:0 }} />
-          <DoodleHex    className="bang-doodle" style={{ position:"absolute", top:"15%", left:"3%", pointerEvents:"none", opacity:0 }} />
-          <DoodleCross  className="bang-doodle" size={50} style={{ position:"absolute", bottom:"22%", left:"8%", pointerEvents:"none", opacity:0 }} />
-
+        <div id="hero-container">
+          <canvas ref={canvasRef} id="hero-canvas" />
+          
           <nav id="pill-nav">
             <span id="pill-logo">persona.ai</span>
             <div id="pill-links">
@@ -888,18 +837,20 @@ export default function StartInterview({ onStart }) {
             )}
           </nav>
 
-          <div id="bang-content">
-            <div id="bang-eyebrow">AI Interview Training · The Intelligence Edition</div>
-            <h1 id="bang-title" style={{ perspective:"800px" }}>
-              {["Ace", "Your", "Interview."].map((w, i) => (
-                <span key={i} className="bw">{w}</span>
-              ))}
-            </h1>
-            <p id="bang-sub">Meet Payton — a 3D AI interviewer built to train you to win. Powered by GPT, rendered in real time.</p>
-            <button id="bang-cta" onClick={() => scrollTo(5)}>Begin Training →</button>
+          <div id="hero-overlay">
+            <div id="bang-content" style={{ padding: 0, alignItems: 'center', textAlign: 'center' }}>
+              <div id="bang-eyebrow">AI Interview Training · The Intelligence Edition</div>
+              <h1 id="bang-title" style={{ perspective:"800px" }}>
+                PERSONA<span style={{ color: "var(--a)" }}>.AI</span>
+              </h1>
+              <p id="bang-sub" style={{ maxWidth: "600px" }}>
+                Master your next interview. Practice with Payton, our real-time AI hiring manager, and get instant, actionable feedback.
+              </p>
+              <button id="bang-cta" onClick={() => scrollTo(5)}>Begin Training →</button>
+            </div>
           </div>
-
-          <div id="scroll-hint">
+          
+          <div id="scroll-hint" style={{ bottom: 20 }}>
             <span>scroll to explore</span>
             <div id="sh-line" />
           </div>
@@ -1007,7 +958,7 @@ export default function StartInterview({ onStart }) {
 
           <div className="stats-strip">
             {[
-              { num:"98%",  label:"Relevance",   note:"vs actual interview Qs" },
+              { num:"98%",  label:"Relevance",  note:"vs actual interview Qs" },
               { num:"10K+", label:"Hours trained",note:"on real interview data" },
               { num:"∞",    label:"Roles",        note:"any job title supported" },
               { num:"3s",   label:"Warm-up",      note:"from config to live Payton" },
@@ -1417,105 +1368,76 @@ const CSS = `
 /* ── DOODLES ── */
 .doodle { pointer-events:none; flex-shrink:0; }
 .sec-doodle { will-change:transform,opacity; }
-.bang-doodle { will-change:transform,opacity; }
-.doodle-row {
-  display:flex; align-items:center; gap:24px;
-  margin-top:48px; opacity:0.65;
-}
-.ft-doodle-row {
-  display:flex; align-items:center; gap:24px;
-  margin-bottom:32px; opacity:0.5;
-}
+.doodle-row { display:flex; align-items:center; gap:24px; margin-top:48px; opacity:0.65; }
+.ft-doodle-row { display:flex; align-items:center; gap:24px; margin-bottom:32px; opacity:0.5; }
 
 /* ── SECTION WATERMARK ── */
 .sec-watermark {
-  position:absolute;
-  top:50%; right:5vw;
-  transform:translateY(-50%);
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(120px,16vw,240px);
-  color:rgba(255,255,255,0.018);
-  line-height:1;
-  pointer-events:none;
-  user-select:none;
-  will-change:transform,opacity;
-  z-index:0;
+  position:absolute; top:50%; right:5vw; transform:translateY(-50%);
+  font-family:'Bebas Neue',sans-serif; font-size:clamp(120px,16vw,240px);
+  color:rgba(255,255,255,0.018); line-height:1; pointer-events:none; user-select:none;
+  will-change:transform,opacity; z-index:0;
 }
 
 /* ── VERTICAL LABELS ── */
 .vert-label {
-  position:absolute;
-  font-size:9px; font-weight:700; letter-spacing:4px;
+  position:absolute; font-size:9px; font-weight:700; letter-spacing:4px;
   text-transform:uppercase; color:rgba(255,255,255,0.18);
-  writing-mode:vertical-rl; text-orientation:mixed;
-  will-change:transform,opacity;
-  top:50%;
+  writing-mode:vertical-rl; text-orientation:mixed; will-change:transform,opacity; top:50%;
 }
 .vert-left  { left:-44px; transform:translateY(-50%) rotate(180deg); }
 .vert-right { right:-44px; transform:translateY(-50%); }
 
 /* ── DRAW LINE ── */
 .draw-line {
-  height:1px;
-  background:linear-gradient(90deg, var(--a) 0%, rgba(79,142,247,0.4) 50%, transparent 100%);
-  margin-bottom:56px;
-  will-change:transform;
+  height:1px; background:linear-gradient(90deg, var(--a) 0%, rgba(79,142,247,0.4) 50%, transparent 100%);
+  margin-bottom:56px; will-change:transform;
 }
 
 /* ── STATS STRIP ── */
 .stats-strip {
-  display:grid; grid-template-columns:repeat(4,1fr);
-  gap:1px; background:var(--bdr);
-  border:1px solid var(--bdr); border-radius:12px;
-  overflow:hidden; margin-bottom:24px;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--bdr);
+  border:1px solid var(--bdr); border-radius:12px; overflow:hidden; margin-bottom:24px;
 }
-.stat-block {
-  background:var(--c1); padding:28px 24px;
-  position:relative;
-  transition:background 0.3s;
-  will-change:transform,opacity;
-}
+.stat-block { background:var(--c1); padding:28px 24px; position:relative; transition:background 0.3s; will-change:transform,opacity; }
 .stat-block:hover { background:#141414; }
 .stat-block::after {
-  content:'';
-  position:absolute; inset:0;
-  background:linear-gradient(135deg,rgba(125,249,194,0.04),transparent 60%);
-  opacity:0;
-  transition:opacity 0.3s;
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(125,249,194,0.04),transparent 60%); opacity:0; transition:opacity 0.3s;
 }
 .stat-block:hover::after { opacity:1; }
-.sb-num {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(36px,4vw,60px);
-  color:var(--w); line-height:1; margin-bottom:6px;
-}
-.sb-label {
-  font-size:10px; font-weight:700; letter-spacing:3px;
-  text-transform:uppercase; color:var(--a); margin-bottom:6px;
-}
+.sb-num { font-family:'Bebas Neue',sans-serif; font-size:clamp(36px,4vw,60px); color:var(--w); line-height:1; margin-bottom:6px; }
+.sb-label { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--a); margin-bottom:6px; }
 .sb-note { font-size:12px; font-weight:300; color:var(--d); }
 
 /* ════════════════════════════════════
-   BIG BANG
+   NEW CANVAS HERO
 ════════════════════════════════════ */
-#bang {
-  position:relative; width:100%; height:100vh;
-  overflow:hidden; background:#000;
-  display:flex; align-items:center; justify-content:center;
+#hero-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
 }
-#bang-cosmos, #bang-nebula {
-  position:absolute; inset:-8%;
-  background-size:cover; background-position:center;
-  will-change:transform,filter,opacity;
+#hero-canvas {
+  display: block;
+  width: 100%;
+  height: 100vh;
 }
-#bang-nebula { mix-blend-mode:screen; filter:hue-rotate(30deg) saturate(1.6); }
-#bang-flash  { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:30; will-change:opacity; }
-
-#bang-rings { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:10; }
-.bring { position:absolute; border-radius:50%; border:1.5px solid; transform:scale(0); will-change:transform,opacity; }
-#bang-core { position:absolute; z-index:11; width:16px; height:16px; border-radius:50%; background:radial-gradient(circle,#fff 0%,var(--a) 45%,var(--a2) 100%); box-shadow:0 0 50px 25px rgba(125,249,194,0.7),0 0 120px 60px rgba(79,142,247,0.4); will-change:transform,opacity; }
-#bang-parts { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:12; }
-.bp { position:absolute; border-radius:50%; will-change:transform,opacity; }
+#hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none; /* Let clicks pass through if needed */
+}
+#hero-overlay > * {
+  pointer-events: auto;
+}
 
 #pill-nav { position:absolute; top:26px; left:50%; transform:translateX(-50%); display:flex; align-items:center; background:rgba(0,0,0,0.55); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,0.1); border-radius:50px; padding:7px 8px 7px 22px; z-index:50; white-space:nowrap; }
 #pill-logo { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:5px; color:rgba(255,255,255,0.88); margin-right:18px; }
