@@ -154,7 +154,7 @@ export default function StartInterview({ onStart }) {
   
   // Canvas Sequence Refs
   const canvasRef = useRef(null);
-  const FRAME_COUNT = 210; // Update this if you have more/fewer frames
+  const FRAME_COUNT = 147; // Adjusted to exactly 147 frames to prevent black screen
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -175,7 +175,6 @@ export default function StartInterview({ onStart }) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      // Handle Resize smoothly
       window.addEventListener("resize", () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -185,15 +184,12 @@ export default function StartInterview({ onStart }) {
       const images = [];
       const playhead = { frame: 0 };
 
-      // Preload all 210 images
       for (let i = 0; i < FRAME_COUNT; i++) {
         const img = new Image();
-        // Uses padStart to make "001", "015", "210", etc.
         img.src = `/sequence/ezgif-frame-${String(i + 1).padStart(3, "0")}.jpg`;
         images.push(img);
       }
 
-      // Draw function that mimics object-fit: cover
       function render(img) {
         if (!img || !img.complete) return;
         const hRatio = canvas.width / img.width;
@@ -209,10 +205,8 @@ export default function StartInterview({ onStart }) {
         );
       }
 
-      // Draw the first frame as soon as it loads
       images[0].onload = () => render(images[0]);
 
-      // ScrollTrigger to scrub through the frames
       gsap.to(playhead, {
         frame: FRAME_COUNT - 1,
         snap: "frame",
@@ -221,26 +215,12 @@ export default function StartInterview({ onStart }) {
           trigger: "#hero-container",
           scroller: scroller,
           start: "top top",
-          end: "+=3000", // Makes the sequence last for 3000px of scrolling
+          end: "+=1500", // Shortened duration to match 147 frames
           pin: true,
-          scrub: 0.5,
+          scrub: 0.1, // Reduced scrub slightly for snappier, lag-free scrolling
         },
         onUpdate: () => render(images[playhead.frame])
       });
-
-      // Fade out the Overlay text as the user starts scrolling
-      gsap.to("#hero-overlay", {
-        opacity: 0,
-        y: -100,
-        scrollTrigger: {
-          trigger: "#hero-container",
-          scroller: scroller,
-          start: "top top",
-          end: "+=800",
-          scrub: true,
-        }
-      });
-      // ────────────────────────────────────────────────────────────────
 
       // Cursor spotlight
       const spotlight = spotlightRef.current;
@@ -264,12 +244,13 @@ export default function StartInterview({ onStart }) {
         });
       });
 
+      // Optimized Sticky Nav Update (Removes laggy backdrop-filter recalculation)
       ScrollTrigger.create({
         trigger: "#main-wrap", scroller, start: "top top", end: "+=600", scrub: true,
         onUpdate: self => {
           const p = self.progress;
           gsap.set("#sticky-nav", {
-            backdropFilter: `blur(${22 + p * 18}px)`,
+            backgroundColor: `rgba(0,0,0,${0.2 + p * 0.7})`,
             borderBottomColor: `rgba(255,255,255,${0.04 + p * 0.1})`,
           });
         },
@@ -662,7 +643,7 @@ export default function StartInterview({ onStart }) {
         <div id="noise" />
 
         {/* ═══════════════════════════════════
-            AUTH MODAL (GLASSMORPHIC OVERLAY)
+            AUTH MODAL
         ═══════════════════════════════════ */}
         {authMode && (
           <div className="auth-overlay">
@@ -745,7 +726,6 @@ export default function StartInterview({ onStart }) {
             <div className="bc form-card auth-card history-card" style={{ maxWidth: selectedInterview ? '600px' : '500px' }}>
               <button className="auth-close" onClick={() => setShowHistory(false)}>✕</button>
               
-              {/* DETAIL VIEW */}
               {selectedInterview ? (
                 <>
                   <div className="fh" style={{ marginBottom: '16px' }}>
@@ -777,7 +757,6 @@ export default function StartInterview({ onStart }) {
                   )}
                 </>
               ) : (
-                /* LIST VIEW */
                 <>
                   <div className="fh" style={{ marginBottom: '16px' }}>
                     <div className="ftt">Interview History</div>
@@ -810,12 +789,11 @@ export default function StartInterview({ onStart }) {
           </div>
         )}
 
-        {/* Custom cursor */}
         <div id="cursor-ring" ref={cursorRef} />
         <div id="cursor-dot"  ref={cursorDotRef} />
 
         {/* ═══════════════════════════════════
-            NEW HERO — CANVAS SEQUENCE
+            NEW HERO — CANVAS SEQUENCE (CLEANED)
         ═══════════════════════════════════ */}
         <div id="hero-container">
           <canvas ref={canvasRef} id="hero-canvas" />
@@ -837,20 +815,7 @@ export default function StartInterview({ onStart }) {
             )}
           </nav>
 
-          <div id="hero-overlay">
-            <div id="bang-content" style={{ padding: 0, alignItems: 'center', textAlign: 'center' }}>
-              <div id="bang-eyebrow">AI Interview Training · The Intelligence Edition</div>
-              <h1 id="bang-title" style={{ perspective:"800px" }}>
-                PERSONA<span style={{ color: "var(--a)" }}>.AI</span>
-              </h1>
-              <p id="bang-sub" style={{ maxWidth: "600px" }}>
-                Master your next interview. Practice with Payton, our real-time AI hiring manager, and get instant, actionable feedback.
-              </p>
-              <button id="bang-cta" onClick={() => scrollTo(5)}>Begin Training →</button>
-            </div>
-          </div>
-          
-          <div id="scroll-hint" style={{ bottom: 20 }}>
+          <div id="scroll-hint" style={{ bottom: 30 }}>
             <span>scroll to explore</span>
             <div id="sh-line" />
           </div>
@@ -1411,7 +1376,7 @@ const CSS = `
 .sb-note { font-size:12px; font-weight:300; color:var(--d); }
 
 /* ════════════════════════════════════
-   NEW CANVAS HERO
+   NEW CANVAS HERO (CLEANED)
 ════════════════════════════════════ */
 #hero-container {
   position: relative;
@@ -1425,19 +1390,6 @@ const CSS = `
   width: 100%;
   height: 100vh;
 }
-#hero-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  pointer-events: none; /* Let clicks pass through if needed */
-}
-#hero-overlay > * {
-  pointer-events: auto;
-}
 
 #pill-nav { position:absolute; top:26px; left:50%; transform:translateX(-50%); display:flex; align-items:center; background:rgba(0,0,0,0.55); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,0.1); border-radius:50px; padding:7px 8px 7px 22px; z-index:50; white-space:nowrap; }
 #pill-logo { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:5px; color:rgba(255,255,255,0.88); margin-right:18px; }
@@ -1445,16 +1397,6 @@ const CSS = `
 .pl { background:none; border:none; cursor:none; padding:5px 13px; border-radius:40px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.45); transition:all 0.2s; font-family:'Bricolage Grotesque',sans-serif; }
 .pl:hover { color:rgba(255,255,255,0.88); background:rgba(255,255,255,0.07); }
 .pl-on { color:#000!important; background:#fff!important; }
-
-#bang-content { position:relative; z-index:20; display:flex; flex-direction:column; align-items:flex-start; padding:0 8vw; width:100%; pointer-events:none; will-change:transform; }
-#bang-eyebrow { font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--a); margin-bottom:22px; text-shadow:0 0 24px rgba(125,249,194,0.5); will-change:transform,opacity; }
-#bang-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(76px,11.5vw,168px); line-height:0.86; letter-spacing:2px; color:#fff; display:flex; flex-direction:column; }
-.bw { display:block; will-change:transform,opacity; }
-#bang-sub { font-size:16px; font-weight:300; line-height:1.75; color:rgba(255,255,255,0.52); margin-top:30px; max-width:440px; will-change:transform,opacity; }
-#bang-cta { margin-top:38px; pointer-events:auto; cursor:none; background:var(--w); color:var(--bg); border:none; padding:15px 36px; font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:4px; border-radius:8px; transition:background 0.2s,transform 0.2s,box-shadow 0.2s; box-shadow:0 4px 32px rgba(125,249,194,0.22); will-change:transform,opacity; position:relative; overflow:hidden; }
-#bang-cta::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); transform:translateX(-100%); transition:transform 0.5s; }
-#bang-cta:hover::after { transform:translateX(100%); }
-#bang-cta:hover { background:var(--a); transform:translateY(-3px); box-shadow:0 8px 44px rgba(125,249,194,0.38); }
 
 #scroll-hint { position:absolute; bottom:34px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0.4; pointer-events:none; z-index:20; will-change:opacity,transform; }
 #scroll-hint span { font-size:9px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:rgba(255,255,255,0.38); }
@@ -1464,7 +1406,13 @@ const CSS = `
 /* ════════════════════════════════════
    STICKY NAV
 ════════════════════════════════════ */
-#sticky-nav { position:sticky; top:0; z-index:100; background:rgba(0,0,0,0.9); backdrop-filter:blur(22px); border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; padding:0 5vw; height:52px; transition:border-bottom-color 0.3s; }
+#sticky-nav { 
+  position:sticky; top:0; z-index:100; 
+  background:rgba(0,0,0,0.2); backdrop-filter:blur(20px); 
+  border-bottom:1px solid rgba(255,255,255,0.04); 
+  display:flex; align-items:center; justify-content:space-between; 
+  padding:0 5vw; height:52px; 
+}
 #sn-logo { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:5px; color:rgba(255,255,255,0.78); }
 #sn-links { display:flex; }
 .snl { background:none; border:none; cursor:none; padding:6px 16px; font-size:12px; font-weight:500; color:var(--d); transition:color 0.2s; font-family:'Bricolage Grotesque',sans-serif; border-radius:4px; }
