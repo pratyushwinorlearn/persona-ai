@@ -168,7 +168,7 @@ export default function StartInterview({ onStart }) {
 
       // ── OPTIMIZED CANVAS IMAGE SEQUENCE LOGIC ─────────────────────────────────
       const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext("2d", { alpha: false }); // Optimize rendering
       
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -222,7 +222,7 @@ export default function StartInterview({ onStart }) {
           end: "+=1500", 
           pin: true,
           pinType: "transform", // Crucial fix for lag in custom scroll containers
-          scrub: 0.5, // Smoother scrubbing
+          scrub: 0.5, 
         },
         onUpdate: () => {
           const frameIndex = Math.max(0, Math.min(FRAME_COUNT - 1, Math.round(playhead.frame)));
@@ -264,7 +264,6 @@ export default function StartInterview({ onStart }) {
         },
       });
 
-      // (Rest of the GSAP animations remain the same)
       gsap.utils.toArray(".sec-hl").forEach(el => {
         el.querySelectorAll(".hw").forEach(word => {
           const text = word.textContent;
@@ -288,7 +287,7 @@ export default function StartInterview({ onStart }) {
         gsap.fromTo(el, { x: -55, opacity: 0 }, {
           x: 0, opacity: 1,
           scrollTrigger: {
-            trigger: el, sc scroller, start: "top 88%", end: "top 60%", scrub: 0.5,
+            trigger: el, scroller, start: "top 88%", end: "top 60%", scrub: 0.5,
             onEnter: () => setTimeout(() => scrambleText(el.childNodes[0] || el, original, 800), 100),
           },
         });
@@ -368,7 +367,7 @@ export default function StartInterview({ onStart }) {
       });
 
       gsap.utils.toArray(".bimg").forEach(img => {
-        gsap.fromTo(img, { y: -28 }, { y: 28, ease: "none", scrollTrigger: { trigger: img.parentElement, sc scroller, start: "top bottom", end: "bottom top", scrub: true } });
+        gsap.fromTo(img, { y: -28 }, { y: 28, ease: "none", scrollTrigger: { trigger: img.parentElement, scroller, start: "top bottom", end: "bottom top", scrub: true } });
       });
 
       gsap.fromTo(".mq-wrap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, scrollTrigger: { trigger: ".mq-wrap", scroller, start: "top 86%", toggleActions: "play none none none" } });
@@ -746,7 +745,7 @@ export default function StartInterview({ onStart }) {
         )}
 
         {/* ═══════════════════════════════════
-            NEW HERO — CANVAS SEQUENCE
+            NEW HERO — CANVAS SEQUENCE (CLEANED)
         ═══════════════════════════════════ */}
         <div id="hero-container">
           <canvas ref={canvasRef} id="hero-canvas" />
