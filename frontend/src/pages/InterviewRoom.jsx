@@ -768,9 +768,14 @@ export default function InterviewRoom({ interviewData, onFinish }) {
 
               {/* User PiP */}
               <div className="ir-pip">
-                {camOn ? (
-                  <video ref={videoRef} autoPlay muted playsInline />
-                ) : (
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  muted 
+                  playsInline 
+                  style={{ display: camOn ? "block" : "none" }} 
+                />
+                {!camOn && (
                   <div className="ir-pip-off">
                     <div className="ir-pip-off-icon">
                       <IconCamOff />
