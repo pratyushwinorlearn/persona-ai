@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -147,7 +147,6 @@ export default function StartInterview({ onStart }) {
   const [authLoading, setAuthLoading] = useState(false);
 
   const secRefs      = useRef([]);
-  const spotlightRef = useRef(null);
   
   // Canvas Sequence Refs
   const canvasRef = useRef(null);
@@ -160,7 +159,7 @@ export default function StartInterview({ onStart }) {
 
   useEffect(() => {
     const ctxGSAP = gsap.context(() => {
-      // ── OPTIMIZED CANVAS IMAGE SEQUENCE LOGIC ─────────────────────────────────
+      // ── NATIVE SCROLL CANVAS SEQUENCE LOGIC ─────────────────────────────────
       const canvas = canvasRef.current;
       if (!canvas) return;
       const context = canvas.getContext("2d", { alpha: false }); 
@@ -215,25 +214,13 @@ export default function StartInterview({ onStart }) {
           start: "top top",
           end: "+=1500", 
           pin: true,
-          scrub: 0.5, 
+          scrub: 0.1, 
         },
         onUpdate: () => {
           const frameIndex = Math.max(0, Math.min(FRAME_COUNT - 1, Math.round(playhead.frame)));
           render(images[frameIndex]);
         }
       });
-
-      // Cursor spotlight (background highlight effect)
-      const spotlight = spotlightRef.current;
-      const onMouseMove = (e) => {
-        if (spotlight) {
-          gsap.to(spotlight, {
-            x: e.clientX - 300, y: e.clientY - 300,
-            duration: 0.8, ease: "power2.out",
-          });
-        }
-      };
-      window.addEventListener("mousemove", onMouseMove);
 
       secRefs.current.forEach((sec, i) => {
         if (!sec) return;
@@ -247,7 +234,7 @@ export default function StartInterview({ onStart }) {
 
       // Optimized Sticky Nav Update
       ScrollTrigger.create({
-        trigger: "#main-wrap",
+        trigger: "body",
         start: "top top", end: "+=600", scrub: true,
         onUpdate: self => {
           const p = self.progress;
@@ -313,13 +300,9 @@ export default function StartInterview({ onStart }) {
           const x = (e.clientX - r.left) / r.width  - 0.5;
           const y = (e.clientY - r.top)  / r.height - 0.5;
           gsap.to(card, { rotationY: x * 12, rotationX: -y * 10, transformPerspective: 900, duration: 0.35, ease: "power2.out" });
-          const spotlight = card.querySelector(".card-spotlight");
-          if (spotlight) { gsap.to(spotlight, { opacity: 1, x: e.clientX - r.left - 150, y: e.clientY - r.top  - 150, duration: 0.3, ease: "power2.out" }); }
         };
         const onLeave = () => {
           gsap.to(card, { rotationY: 0, rotationX: 0, duration: 0.6, ease: "elastic.out(1, 0.5)" });
-          const spotlight = card.querySelector(".card-spotlight");
-          if (spotlight) gsap.to(spotlight, { opacity: 0, duration: 0.3 });
         };
         card.addEventListener("mousemove", onMove); card.addEventListener("mouseleave", onLeave);
       });
@@ -381,7 +364,7 @@ export default function StartInterview({ onStart }) {
         });
       });
 
-      gsap.to("#noise", { backgroundPosition: "100% 100%", ease: "none", scrollTrigger: { trigger: "#main-wrap", start: "top top", end: "bottom bottom", scrub: true } });
+      gsap.to("#noise", { backgroundPosition: "100% 100%", ease: "none", scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true } });
       gsap.utils.toArray(".sec").forEach(sec => { gsap.fromTo(sec, { borderBottomColor: "rgba(255,255,255,0)" }, { borderBottomColor: "rgba(255,255,255,0.07)", scrollTrigger: { trigger: sec, start: "top 80%", toggleActions: "play none none none" } }); });
       gsap.utils.toArray(".vert-label").forEach(el => { gsap.fromTo(el, { opacity: 0, x: el.classList.contains("vert-right") ? 20 : -20 }, { opacity: 1, x: 0, duration: 0.6, scrollTrigger: { trigger: el, start: "top 85%", end: "top 55%", scrub: 0.6 } }); });
 
@@ -438,19 +421,17 @@ export default function StartInterview({ onStart }) {
         gsap.fromTo(wm, { x: 80, opacity: 0 }, { x: 0, opacity: 1, scrollTrigger: { trigger: sec, start: "top 70%", end: "top 20%", scrub: 1 } });
       });
 
-    }); // No wrapRef here, making it use native window scrolling
+    });
 
     return () => {
       ctxGSAP.revert();
       window.removeEventListener("resize", () => {});
-      window.removeEventListener("mousemove", () => {});
     };
   }, []);
 
   const scrollTo = i => {
     const el = secRefs.current[i];
     if (el) {
-      // Switched to native window scrolling
       const y = el.getBoundingClientRect().top + window.scrollY - 52;
       window.scrollTo({ top: y, behavior: "smooth" });
     }
@@ -589,10 +570,8 @@ export default function StartInterview({ onStart }) {
   return (
     <>
       <style>{CSS}</style>
-      <div id="main-wrap" ref={wrapRef}>
+      <div id="main-wrap">
 
-        {/* Global spotlight */}
-        <div id="global-spotlight" ref={spotlightRef} />
         {/* Noise overlay */}
         <div id="noise" />
 
@@ -604,7 +583,6 @@ export default function StartInterview({ onStart }) {
             <div className="auth-backdrop" onClick={() => { setAuthMode(null); setShowOtpInput(false); }} />
             <div className="bc form-card auth-card">
               <button className="auth-close" onClick={() => { setAuthMode(null); setShowOtpInput(false); }}>✕</button>
-              <div className="card-spotlight" />
               <DoodleCorner style={{ position:"absolute", top:14, left:14, opacity:0.4, pointerEvents:"none" }} />
               <DoodleCorner style={{ position:"absolute", bottom:14, right:14, opacity:0.4, transform:"rotate(180deg)", pointerEvents:"none" }} />
               
@@ -744,7 +722,7 @@ export default function StartInterview({ onStart }) {
         )}
 
         {/* ═══════════════════════════════════
-            NEW HERO — CANVAS SEQUENCE (CLEANED)
+            NEW HERO — CANVAS SEQUENCE 
         ═══════════════════════════════════ */}
         <div id="hero-container">
           <canvas ref={canvasRef} id="hero-canvas" />
@@ -811,7 +789,6 @@ export default function StartInterview({ onStart }) {
 
           <div className="bg-grid">
             <div className="bc" style={{ gridColumn:"span 8", gridRow:"span 2", minHeight:460 }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.face})` }} />
               <div className="bov" />
               <div className="bct">
@@ -824,7 +801,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 4" }}>
-              <div className="card-spotlight" />
               <DoodleSpiral style={{ position:"absolute", top:-10, right:-10, opacity:0.5, pointerEvents:"none" }} />
               <div className="bnum count-num" data-target="3" data-suffix="D">0D</div>
               <div className="blabel">Photorealistic Avatar</div>
@@ -832,7 +808,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 4" }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.neural})`, opacity:0.3 }} />
               <div className="bct" style={{ position:"relative", zIndex:2 }}>
                 <div className="btag">Neural Engine</div>
@@ -890,7 +865,6 @@ export default function StartInterview({ onStart }) {
 
           <div className="bg-grid" style={{ marginTop:40 }}>
             <div className="bc" style={{ gridColumn:"span 5", gridRow:"span 2", minHeight:380 }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.ai})`, opacity:0.45 }} />
               <div className="bov" />
               <div className="bct" style={{ position:"relative", zIndex:2 }}>
@@ -901,7 +875,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 7" }}>
-              <div className="card-spotlight" />
               <div className="bct">
                 <div className="btag">Role Intelligence</div>
                 <div className="btitle">∞ job roles supported</div>
@@ -914,7 +887,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 4" }}>
-              <div className="card-spotlight" />
               <DoodleDots style={{ position:"absolute", bottom:12, right:8, opacity:0.8, pointerEvents:"none" }} />
               <div className="bnum" style={{ fontSize:"clamp(48px,5.5vw,84px)" }}>98%</div>
               <div className="blabel">Question relevance</div>
@@ -922,7 +894,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 3" }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.circuit})`, opacity:0.2 }} />
               <div className="bct" style={{ position:"relative", zIndex:2 }}>
                 <div className="btag">Adaptive</div>
@@ -951,7 +922,6 @@ export default function StartInterview({ onStart }) {
 
           <div className="bg-grid">
             <div className="bc voice-main" style={{ gridColumn:"span 12" }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.voice})`, opacity:0.14 }} />
               <div className="wavef">
                 {Array.from({ length: 74 }, (_, i) => {
@@ -972,7 +942,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 6" }}>
-              <div className="card-spotlight" />
               <DoodleCross size={30} style={{ position:"absolute", top:14, right:14, opacity:0.5, pointerEvents:"none" }} />
               <div className="btag">Detection</div>
               <div className="btitle">Catches "um", "uh", "like"<br />in real time.</div>
@@ -980,7 +949,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 6" }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.brain})`, opacity:0.2 }} />
               <div className="bct" style={{ position:"relative", zIndex:2 }}>
                 <div className="btag">Multilingual ASR</div>
@@ -1005,7 +973,6 @@ export default function StartInterview({ onStart }) {
 
           <div className="bg-grid">
             <div className="bc" style={{ gridColumn:"span 4", gridRow:"span 2" }}>
-              <div className="card-spotlight" />
               <DoodleCorner style={{ position:"absolute", top:12, right:12, opacity:0.5, transform:"rotate(90deg)", pointerEvents:"none" }} />
               <div className="btag">Score Report</div>
               <div className="btitle" style={{ marginBottom:22 }}>Performance<br />at a glance.</div>
@@ -1021,7 +988,6 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 8", minHeight:260 }}>
-              <div className="card-spotlight" />
               <div className="bimg" style={{ backgroundImage:`url(${IMGS.interview})`, opacity:0.28 }} />
               <div className="bov" />
               <div className="bct" style={{ position:"relative", zIndex:2 }}>
@@ -1032,13 +998,11 @@ export default function StartInterview({ onStart }) {
             </div>
 
             <div className="bc" style={{ gridColumn:"span 4" }}>
-              <div className="card-spotlight" />
               <div className="bnum" style={{ color:"#fff" }}>A+</div>
               <div className="blabel">Avg grade after 5 sessions</div>
             </div>
 
             <div className="bc" style={{ gridColumn:"span 4" }}>
-              <div className="card-spotlight" />
               <DoodleSpiral style={{ position:"absolute", bottom:8, right:8, opacity:0.5, pointerEvents:"none" }} />
               <div className="btag">Growth Tracking</div>
               <div className="btitle">Progress across<br />every session.</div>
@@ -1120,7 +1084,6 @@ export default function StartInterview({ onStart }) {
 
             <div className="start-r">
               <div className="bc form-card" ref={formRef}>
-                <div className="card-spotlight" />
                 <DoodleCorner style={{ position:"absolute", top:14, left:14, opacity:0.4, pointerEvents:"none" }} />
                 <DoodleCorner style={{ position:"absolute", bottom:14, right:14, opacity:0.4, transform:"rotate(180deg)", pointerEvents:"none" }} />
                 <div className="fh">
@@ -1219,22 +1182,12 @@ const CSS = `
 
 /* ── SCROLLABLE WRAP ── */
 #main-wrap {
-  width:100vw;
-  background:var(--bg);
-  font-family:'Bricolage Grotesque',sans-serif;
-  color:var(--w);
-  -webkit-font-smoothing:antialiased;
-}
-
-/* ── GLOBAL SPOTLIGHT ── */
-#global-spotlight {
-  position:fixed; inset:0;
-  pointer-events:none; z-index:1;
-  width:600px; height:600px;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(125,249,194,0.03) 0%, transparent 70%);
-  will-change:transform;
-  mix-blend-mode:screen;
+  width: 100%;
+  background: var(--bg);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  color: var(--w);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* ── NOISE OVERLAY ── */
@@ -1245,18 +1198,6 @@ const CSS = `
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size:180px 180px;
   mix-blend-mode:overlay;
-}
-
-/* ── CARD SPOTLIGHT ── */
-.card-spotlight {
-  position:absolute;
-  width:300px; height:300px;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(125,249,194,0.09) 0%, transparent 70%);
-  pointer-events:none; z-index:1;
-  opacity:0;
-  will-change:transform,opacity;
-  transform:translate(-150px,-150px);
 }
 
 /* ── DOODLES ── */
