@@ -146,7 +146,6 @@ export default function StartInterview({ onStart }) {
   const [authName, setAuthName] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
-  const wrapRef      = useRef(null);
   const secRefs      = useRef([]);
   const spotlightRef = useRef(null);
   
@@ -160,15 +159,11 @@ export default function StartInterview({ onStart }) {
   }, []);
 
   useEffect(() => {
-    const scroller = wrapRef.current;
-    if (!scroller) return;
-
     const ctxGSAP = gsap.context(() => {
-      ScrollTrigger.defaults({ scroller });
-
       // ── OPTIMIZED CANVAS IMAGE SEQUENCE LOGIC ─────────────────────────────────
       const canvas = canvasRef.current;
-      const context = canvas.getContext("2d", { alpha: false }); // Optimize rendering
+      if (!canvas) return;
+      const context = canvas.getContext("2d", { alpha: false }); 
       
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -217,11 +212,9 @@ export default function StartInterview({ onStart }) {
         ease: "none",
         scrollTrigger: {
           trigger: "#hero-container",
-          scroller: scroller,
           start: "top top",
           end: "+=1500", 
           pin: true,
-          pinType: "transform", // Crucial fix for lag in custom scroll containers
           scrub: 0.5, 
         },
         onUpdate: () => {
@@ -245,7 +238,7 @@ export default function StartInterview({ onStart }) {
       secRefs.current.forEach((sec, i) => {
         if (!sec) return;
         ScrollTrigger.create({
-          trigger: sec, scroller,
+          trigger: sec,
           start: "top 52%", end: "bottom 52%",
           onEnter: () => setActiveNav(i),
           onEnterBack: () => setActiveNav(i),
@@ -254,7 +247,8 @@ export default function StartInterview({ onStart }) {
 
       // Optimized Sticky Nav Update
       ScrollTrigger.create({
-        trigger: "#main-wrap", scroller, start: "top top", end: "+=600", scrub: true,
+        trigger: "#main-wrap",
+        start: "top top", end: "+=600", scrub: true,
         onUpdate: self => {
           const p = self.progress;
           gsap.set("#sticky-nav", {
@@ -264,6 +258,7 @@ export default function StartInterview({ onStart }) {
         },
       });
 
+      // Standard GSAP animations
       gsap.utils.toArray(".sec-hl").forEach(el => {
         el.querySelectorAll(".hw").forEach(word => {
           const text = word.textContent;
@@ -277,7 +272,7 @@ export default function StartInterview({ onStart }) {
           {
             y: 0, opacity: 1, rotationX: 0, filter: "blur(0px)",
             stagger: { each: 0.018, from: "start" }, duration: 0.55, ease: "power3.out",
-            scrollTrigger: { trigger: el, scroller, start: "top 85%", end: "top 35%", scrub: 0.6 },
+            scrollTrigger: { trigger: el, start: "top 85%", end: "top 35%", scrub: 0.6 },
           }
         );
       });
@@ -287,7 +282,7 @@ export default function StartInterview({ onStart }) {
         gsap.fromTo(el, { x: -55, opacity: 0 }, {
           x: 0, opacity: 1,
           scrollTrigger: {
-            trigger: el, scroller, start: "top 88%", end: "top 60%", scrub: 0.5,
+            trigger: el, start: "top 88%", end: "top 60%", scrub: 0.5,
             onEnter: () => setTimeout(() => scrambleText(el.childNodes[0] || el, original, 800), 100),
           },
         });
@@ -295,7 +290,7 @@ export default function StartInterview({ onStart }) {
 
       gsap.utils.toArray(".sec-sub").forEach(el => {
         gsap.fromTo(el, { y: 38, opacity: 0, filter: "blur(8px)" }, {
-          y: 0, opacity: 1, filter: "blur(0px)", scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 56%", scrub: 0.5 },
+          y: 0, opacity: 1, filter: "blur(0px)", scrollTrigger: { trigger: el, start: "top 88%", end: "top 56%", scrub: 0.5 },
         });
       });
 
@@ -306,7 +301,7 @@ export default function StartInterview({ onStart }) {
             { clipPath: "inset(100% 0% 0% 0%)", opacity: 0, y: 40 },
             {
               clipPath: "inset(0% 0% 0% 0%)", opacity: 1, y: 0, duration: 0.7, ease: "power3.out",
-              scrollTrigger: { trigger: card, scroller, start: "top 90%", end: "top 55%", scrub: 0.7 }, delay: i * 0.04,
+              scrollTrigger: { trigger: card, start: "top 90%", end: "top 55%", scrub: 0.7 }, delay: i * 0.04,
             }
           );
         });
@@ -330,47 +325,47 @@ export default function StartInterview({ onStart }) {
       });
 
       gsap.utils.toArray(".sec-doodle").forEach((el, i) => {
-        gsap.fromTo(el, { opacity: 0, scale: 0.7, rotation: -15 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.6)", scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 55%", scrub: 0.5 } });
+        gsap.fromTo(el, { opacity: 0, scale: 0.7, rotation: -15 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.6)", scrollTrigger: { trigger: el, start: "top 88%", end: "top 55%", scrub: 0.5 } });
         ScrollTrigger.create({
-          trigger: el, scroller, start: "top 88%", once: true,
+          trigger: el, start: "top 88%", once: true,
           onEnter: () => { gsap.to(el, { y: -10 - (i % 3) * 6, rotation: i % 2 === 0 ? 6 : -5, duration: 2.2 + i * 0.3, ease: "sine.inOut", yoyo: true, repeat: -1, delay: i * 0.2 }); },
         });
       });
 
       gsap.utils.toArray(".draw-line").forEach(el => {
         gsap.set(el, { transformOrigin: "left center" });
-        gsap.fromTo(el, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.inOut", scrollTrigger: { trigger: el, scroller, start: "top 88%", end: "top 60%", scrub: 0.6 } });
+        gsap.fromTo(el, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.inOut", scrollTrigger: { trigger: el, start: "top 88%", end: "top 60%", scrub: 0.6 } });
       });
 
       gsap.utils.toArray(".sbfill").forEach(bar => {
         const w = bar.dataset.w;
-        const tl = gsap.timeline({ scrollTrigger: { trigger: bar, scroller, start: "top 85%", toggleActions: "play none none none" } });
+        const tl = gsap.timeline({ scrollTrigger: { trigger: bar, start: "top 85%", toggleActions: "play none none none" } });
         tl.fromTo(bar, { width: "0%" }, { width: w, duration: 1.1, ease: "power3.out" })
           .to(bar, { backgroundPosition: "200% center", duration: 1.2, ease: "power1.inOut", repeat: -1 }, "-=0.3");
       });
 
-      gsap.fromTo(".pdbar", { scaleY: 0, transformOrigin: "bottom" }, { scaleY: 1, stagger: 0.07, duration: 0.8, ease: "elastic.out(1.2, 0.5)", scrollTrigger: { trigger: ".pd-wrap", scroller, start: "top 85%", toggleActions: "play none none none" } });
-      gsap.fromTo(".wbar", { scaleY: 0, opacity: 0, transformOrigin: "center" }, { scaleY: 1, opacity: 0.75, stagger: 0.011, duration: 0.25, ease: "back.out(2)", scrollTrigger: { trigger: ".wavef", scroller, start: "top 85%", toggleActions: "play none none none" } });
-      gsap.fromTo(".rcat", { x: -60, opacity: 0, rotationY: -25 }, { x: 0, opacity: 1, rotationY: 0, stagger: 0.1, duration: 0.7, ease: "power3.out", scrollTrigger: { trigger: ".rcat-wrap", scroller, start: "top 82%", end: "top 36%", scrub: 0.8 } });
+      gsap.fromTo(".pdbar", { scaleY: 0, transformOrigin: "bottom" }, { scaleY: 1, stagger: 0.07, duration: 0.8, ease: "elastic.out(1.2, 0.5)", scrollTrigger: { trigger: ".pd-wrap", start: "top 85%", toggleActions: "play none none none" } });
+      gsap.fromTo(".wbar", { scaleY: 0, opacity: 0, transformOrigin: "center" }, { scaleY: 1, opacity: 0.75, stagger: 0.011, duration: 0.25, ease: "back.out(2)", scrollTrigger: { trigger: ".wavef", start: "top 85%", toggleActions: "play none none none" } });
+      gsap.fromTo(".rcat", { x: -60, opacity: 0, rotationY: -25 }, { x: 0, opacity: 1, rotationY: 0, stagger: 0.1, duration: 0.7, ease: "power3.out", scrollTrigger: { trigger: ".rcat-wrap", start: "top 82%", end: "top 36%", scrub: 0.8 } });
 
       gsap.utils.toArray(".rcat").forEach((cat, ci) => {
         const chips = cat.querySelectorAll(".rcri");
-        gsap.fromTo(chips, { scale: 0.5, opacity: 0, y: 20 }, { scale: 1, opacity: 1, y: 0, stagger: 0.06, duration: 0.5, ease: "back.out(2.5)", scrollTrigger: { trigger: cat, scroller, start: "top 78%", toggleActions: "play none none none" }, delay: ci * 0.1 });
+        gsap.fromTo(chips, { scale: 0.5, opacity: 0, y: 20 }, { scale: 1, opacity: 1, y: 0, stagger: 0.06, duration: 0.5, ease: "back.out(2.5)", scrollTrigger: { trigger: cat, start: "top 78%", toggleActions: "play none none none" }, delay: ci * 0.1 });
       });
 
-      gsap.fromTo(".rbanner", { scale: 0.88, opacity: 0, y: 30, clipPath: "inset(0% 100% 0% 0%)" }, { scale: 1, opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)", scrollTrigger: { trigger: ".rbanner", scroller, start: "top 87%", end: "top 50%", scrub: 0.65 } });
-      gsap.fromTo(".start-hl", { y: 85, opacity: 0, skewX: -4 }, { y: 0, opacity: 1, skewX: 0, scrollTrigger: { trigger: ".start-hl", scroller, start: "top 86%", end: "top 40%", scrub: 0.9 } });
-      gsap.fromTo(".form-card", { x: 75, opacity: 0, rotationY: 15, transformPerspective: 800 }, { x: 0, opacity: 1, rotationY: 0, scrollTrigger: { trigger: ".form-card", scroller, start: "top 87%", end: "top 42%", scrub: 0.85 } });
+      gsap.fromTo(".rbanner", { scale: 0.88, opacity: 0, y: 30, clipPath: "inset(0% 100% 0% 0%)" }, { scale: 1, opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)", scrollTrigger: { trigger: ".rbanner", start: "top 87%", end: "top 50%", scrub: 0.65 } });
+      gsap.fromTo(".start-hl", { y: 85, opacity: 0, skewX: -4 }, { y: 0, opacity: 1, skewX: 0, scrollTrigger: { trigger: ".start-hl", start: "top 86%", end: "top 40%", scrub: 0.9 } });
+      gsap.fromTo(".form-card", { x: 75, opacity: 0, rotationY: 15, transformPerspective: 800 }, { x: 0, opacity: 1, rotationY: 0, scrollTrigger: { trigger: ".form-card", start: "top 87%", end: "top 42%", scrub: 0.85 } });
 
       gsap.utils.toArray(".sfi").forEach((el, i) => {
-        gsap.fromTo(el, { y: 48, opacity: 0, x: -20 }, { y: 0, opacity: 1, x: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: ".sfi-wrap", scroller, start: "top 83%", toggleActions: "play none none none" }, delay: i * 0.15 });
+        gsap.fromTo(el, { y: 48, opacity: 0, x: -20 }, { y: 0, opacity: 1, x: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: ".sfi-wrap", start: "top 83%", toggleActions: "play none none none" }, delay: i * 0.15 });
       });
 
       gsap.utils.toArray(".bimg").forEach(img => {
-        gsap.fromTo(img, { y: -28 }, { y: 28, ease: "none", scrollTrigger: { trigger: img.parentElement, scroller, start: "top bottom", end: "bottom top", scrub: true } });
+        gsap.fromTo(img, { y: -28 }, { y: 28, ease: "none", scrollTrigger: { trigger: img.parentElement, start: "top bottom", end: "bottom top", scrub: true } });
       });
 
-      gsap.fromTo(".mq-wrap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, scrollTrigger: { trigger: ".mq-wrap", scroller, start: "top 86%", toggleActions: "play none none none" } });
+      gsap.fromTo(".mq-wrap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, scrollTrigger: { trigger: ".mq-wrap", start: "top 86%", toggleActions: "play none none none" } });
 
       gsap.utils.toArray(".count-num").forEach(el => {
         const target  = parseFloat(el.dataset.target);
@@ -378,7 +373,7 @@ export default function StartInterview({ onStart }) {
         const suffix  = el.dataset.suffix || "";
         const proxy   = { val: 0 };
         ScrollTrigger.create({
-          trigger: el, scroller, start: "top 85%", once: true,
+          trigger: el, start: "top 85%", once: true,
           onEnter: () => {
             gsap.fromTo(el, { filter: "blur(12px)", opacity: 0.3 }, { filter: "blur(0px)", opacity: 1, duration: 0.8 });
             gsap.fromTo(proxy, { val: 0 }, { val: target, duration: 2.2, ease: "power3.out", onUpdate: () => { el.textContent = isFloat ? proxy.val.toFixed(1) : Math.round(proxy.val) + suffix; } });
@@ -386,22 +381,22 @@ export default function StartInterview({ onStart }) {
         });
       });
 
-      gsap.to("#noise", { backgroundPosition: "100% 100%", ease: "none", scrollTrigger: { trigger: "#main-wrap", scroller, start: "top top", end: "bottom bottom", scrub: true } });
-      gsap.utils.toArray(".sec").forEach(sec => { gsap.fromTo(sec, { borderBottomColor: "rgba(255,255,255,0)" }, { borderBottomColor: "rgba(255,255,255,0.07)", scrollTrigger: { trigger: sec, scroller, start: "top 80%", toggleActions: "play none none none" } }); });
-      gsap.utils.toArray(".vert-label").forEach(el => { gsap.fromTo(el, { opacity: 0, x: el.classList.contains("vert-right") ? 20 : -20 }, { opacity: 1, x: 0, duration: 0.6, scrollTrigger: { trigger: el, scroller, start: "top 85%", end: "top 55%", scrub: 0.6 } }); });
+      gsap.to("#noise", { backgroundPosition: "100% 100%", ease: "none", scrollTrigger: { trigger: "#main-wrap", start: "top top", end: "bottom bottom", scrub: true } });
+      gsap.utils.toArray(".sec").forEach(sec => { gsap.fromTo(sec, { borderBottomColor: "rgba(255,255,255,0)" }, { borderBottomColor: "rgba(255,255,255,0.07)", scrollTrigger: { trigger: sec, start: "top 80%", toggleActions: "play none none none" } }); });
+      gsap.utils.toArray(".vert-label").forEach(el => { gsap.fromTo(el, { opacity: 0, x: el.classList.contains("vert-right") ? 20 : -20 }, { opacity: 1, x: 0, duration: 0.6, scrollTrigger: { trigger: el, start: "top 85%", end: "top 55%", scrub: 0.6 } }); });
 
       const footerLogo = document.querySelector(".ft-logo");
       if (footerLogo) {
         const text = footerLogo.textContent;
         footerLogo.innerHTML = text.split("").map(ch => `<span style="display:inline-block;will-change:transform,opacity">${ch}</span>`).join("");
-        gsap.fromTo(footerLogo.querySelectorAll("span"), { y: 40, opacity: 0, rotationX: -50 }, { y: 0, opacity: 1, rotationX: 0, stagger: 0.06, duration: 0.5, ease: "back.out(1.8)", scrollTrigger: { trigger: "#footer", scroller, start: "top 88%", toggleActions: "play none none none" } });
+        gsap.fromTo(footerLogo.querySelectorAll("span"), { y: 40, opacity: 0, rotationX: -50 }, { y: 0, opacity: 1, rotationX: 0, stagger: 0.06, duration: 0.5, ease: "back.out(1.8)", scrollTrigger: { trigger: "#footer", start: "top 88%", toggleActions: "play none none none" } });
       }
 
-      gsap.fromTo("#footer", { opacity: 0, y: 40 }, { opacity: 1, y: 0, scrollTrigger: { trigger: "#footer", scroller, start: "top 90%", end: "top 60%", scrub: 0.6 } });
-      gsap.fromTo(".stat-block", { y: 50, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, stagger: { each: 0.12, from: "start" }, duration: 0.65, ease: "back.out(1.8)", scrollTrigger: { trigger: ".stats-strip", scroller, start: "top 86%", toggleActions: "play none none none" } });
+      gsap.fromTo("#footer", { opacity: 0, y: 40 }, { opacity: 1, y: 0, scrollTrigger: { trigger: "#footer", start: "top 90%", end: "top 60%", scrub: 0.6 } });
+      gsap.fromTo(".stat-block", { y: 50, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, stagger: { each: 0.12, from: "start" }, duration: 0.65, ease: "back.out(1.8)", scrollTrigger: { trigger: ".stats-strip", start: "top 86%", toggleActions: "play none none none" } });
 
       ScrollTrigger.create({
-        trigger: ".mq-wrap", scroller, start: "top bottom", end: "bottom top", scrub: true,
+        trigger: ".mq-wrap", start: "top bottom", end: "bottom top", scrub: true,
         onUpdate: self => { const speed = 32 - self.getVelocity() / 400; gsap.to(".mq", { duration: 0.5, "--mq-duration": `${Math.max(8, Math.min(80, speed))}s` }); },
       });
 
@@ -415,14 +410,14 @@ export default function StartInterview({ onStart }) {
           "radial-gradient(ellipse at 90% 60%, rgba(79,142,247,0.04) 0%, transparent 65%)",
           "radial-gradient(ellipse at 40% 50%, rgba(125,249,194,0.05) 0%, transparent 65%)",
         ];
-        gsap.fromTo(sec, { background: "transparent" }, { background: colors[i] || "transparent", scrollTrigger: { trigger: sec, scroller, start: "top 60%", end: "bottom 60%", scrub: 1 } });
+        gsap.fromTo(sec, { background: "transparent" }, { background: colors[i] || "transparent", scrollTrigger: { trigger: sec, start: "top 60%", end: "bottom 60%", scrub: 1 } });
       });
 
-      gsap.fromTo(".chip", { scale: 0, opacity: 0, rotation: -10 }, { scale: 1, opacity: 1, rotation: 0, stagger: { each: 0.04, from: "random" }, duration: 0.45, ease: "back.out(2.2)", scrollTrigger: { trigger: ".chip-row", scroller, start: "top 85%", toggleActions: "play none none none" } });
-      gsap.fromTo(".vst", { y: 30, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, stagger: 0.1, duration: 0.5, ease: "back.out(1.7)", scrollTrigger: { trigger: ".vstats", scroller, start: "top 88%", toggleActions: "play none none none" } });
+      gsap.fromTo(".chip", { scale: 0, opacity: 0, rotation: -10 }, { scale: 1, opacity: 1, rotation: 0, stagger: { each: 0.04, from: "random" }, duration: 0.45, ease: "back.out(2.2)", scrollTrigger: { trigger: ".chip-row", start: "top 85%", toggleActions: "play none none none" } });
+      gsap.fromTo(".vst", { y: 30, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, stagger: 0.1, duration: 0.5, ease: "back.out(1.7)", scrollTrigger: { trigger: ".vstats", start: "top 88%", toggleActions: "play none none none" } });
 
       ScrollTrigger.create({
-        trigger: ".form-card", scroller, start: "top 70%", once: true,
+        trigger: ".form-card", start: "top 70%", once: true,
         onEnter: () => {
           const fields = document.querySelectorAll(".field input, .field select");
           fields.forEach((field, i) => {
@@ -433,17 +428,17 @@ export default function StartInterview({ onStart }) {
         },
       });
 
-      gsap.fromTo(".fquote", { clipPath: "inset(0% 100% 0% 0%)", opacity: 0 }, { clipPath: "inset(0% 0% 0% 0%)", opacity: 1, duration: 1.2, ease: "power2.inOut", scrollTrigger: { trigger: ".fquote", scroller, start: "top 85%", toggleActions: "play none none none" } });
-      ScrollTrigger.create({ trigger: ".rbanner", scroller, start: "top 80%", once: true, onEnter: () => { gsap.fromTo(".rb-n", { scale: 3, opacity: 0, rotation: -90, filter: "blur(20px)" }, { scale: 1, opacity: 1, rotation: 0, filter: "blur(0px)", duration: 1.1, ease: "power4.out" }); } });
+      gsap.fromTo(".fquote", { clipPath: "inset(0% 100% 0% 0%)", opacity: 0 }, { clipPath: "inset(0% 0% 0% 0%)", opacity: 1, duration: 1.2, ease: "power2.inOut", scrollTrigger: { trigger: ".fquote", start: "top 85%", toggleActions: "play none none none" } });
+      ScrollTrigger.create({ trigger: ".rbanner", start: "top 80%", once: true, onEnter: () => { gsap.fromTo(".rb-n", { scale: 3, opacity: 0, rotation: -90, filter: "blur(20px)" }, { scale: 1, opacity: 1, rotation: 0, filter: "blur(0px)", duration: 1.1, ease: "power4.out" }); } });
 
       secRefs.current.forEach((sec, i) => {
         if (!sec) return;
         const wm = sec.querySelector(".sec-watermark");
         if (!wm) return;
-        gsap.fromTo(wm, { x: 80, opacity: 0 }, { x: 0, opacity: 1, scrollTrigger: { trigger: sec, scroller, start: "top 70%", end: "top 20%", scrub: 1 } });
+        gsap.fromTo(wm, { x: 80, opacity: 0 }, { x: 0, opacity: 1, scrollTrigger: { trigger: sec, start: "top 70%", end: "top 20%", scrub: 1 } });
       });
 
-    }, wrapRef);
+    }); // No wrapRef here, making it use native window scrolling
 
     return () => {
       ctxGSAP.revert();
@@ -454,7 +449,11 @@ export default function StartInterview({ onStart }) {
 
   const scrollTo = i => {
     const el = secRefs.current[i];
-    if (el) wrapRef.current.scrollTo({ top: el.offsetTop - 52, behavior: "smooth" });
+    if (el) {
+      // Switched to native window scrolling
+      const y = el.getBoundingClientRect().top + window.scrollY - 52;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
   };
 
   async function handleStart() {
@@ -1220,8 +1219,7 @@ const CSS = `
 
 /* ── SCROLLABLE WRAP ── */
 #main-wrap {
-  width:100vw; height:100vh;
-  overflow-y:scroll; overflow-x:hidden;
+  width:100vw;
   background:var(--bg);
   font-family:'Bricolage Grotesque',sans-serif;
   color:var(--w);
