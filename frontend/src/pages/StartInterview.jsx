@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import api from "../services/api";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -147,6 +147,7 @@ export default function StartInterview({ onStart }) {
   const [authLoading, setAuthLoading] = useState(false);
 
   const secRefs      = useRef([]);
+  const spotlightRef = useRef(null);
   
   // Canvas Sequence Refs
   const canvasRef = useRef(null);
@@ -570,156 +571,158 @@ export default function StartInterview({ onStart }) {
   return (
     <>
       <style>{CSS}</style>
+      
+      {/* ═══════════════════════════════════
+          MODALS RENDERED OUTSIDE #main-wrap
+      ═══════════════════════════════════ */}
+      
+      {/* AUTH MODAL */}
+      {authMode && (
+        <div className="auth-overlay">
+          <div className="auth-backdrop" onClick={() => { setAuthMode(null); setShowOtpInput(false); }} />
+          <div className="bc form-card auth-card">
+            <button className="auth-close" onClick={() => { setAuthMode(null); setShowOtpInput(false); }}>✕</button>
+            <DoodleCorner style={{ position:"absolute", top:14, left:14, opacity:0.4, pointerEvents:"none" }} />
+            <DoodleCorner style={{ position:"absolute", bottom:14, right:14, opacity:0.4, transform:"rotate(180deg)", pointerEvents:"none" }} />
+            
+            <div className="fh">
+              <div className="ftt">{authMode === 'login' ? 'Welcome Back' : 'Create Account'}</div>
+              <div className="fdot" />
+            </div>
+
+            <form onSubmit={handleAuthSubmit}>
+              {showOtpInput ? (
+                <div className="field field-full">
+                  <label>Verification Code</label>
+                  <input
+                    type="text"
+                    maxLength="6"
+                    placeholder="000000"
+                    style={{ textAlign: 'center', fontSize: '28px', letterSpacing: '8px', fontFamily: 'monospace' }}
+                    value={otp}
+                    onChange={e => setOtp(e.target.value)}
+                    required
+                  />
+                  <p className="bdesc" style={{ marginTop: '12px', textAlign: 'center' }}>
+                    Enter the 6-digit code sent to <br/> <strong style={{ color: 'var(--w)' }}>{authEmail}</strong>
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {authMode === 'register' && (
+                    <div className="field field-full">
+                      <label>Full Name</label>
+                      <input type="text" placeholder="Jane Doe" value={authName} onChange={e => setAuthName(e.target.value)} required />
+                    </div>
+                  )}
+                  <div className="field field-full">
+                    <label>Email Address</label>
+                    <input type="email" placeholder="name@company.com" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required />
+                  </div>
+                  <div className="field field-full">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••" value={authPass} onChange={e => setAuthPass(e.target.value)} required />
+                  </div>
+                </>
+              )}
+
+              <div className="divider" />
+              
+              <button type="submit" className="btn-go" disabled={authLoading}>
+                <div className="btn-in">
+                  {authLoading ? (
+                    <><div className="spin" />Processing...</>
+                  ) : (
+                    <>{showOtpInput ? 'Verify Code →' : (authMode === 'login' ? 'Sign In →' : 'Send Code →')}</>
+                  )}
+                </div>
+              </button>
+            </form>
+
+            {!showOtpInput && (
+              <button type="button" className="auth-switch" onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}>
+                {authMode === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* HISTORY MODAL */}
+      {showHistory && (
+        <div className="auth-overlay">
+          <div className="auth-backdrop" onClick={() => setShowHistory(false)} />
+          <div className="bc form-card auth-card history-card" style={{ maxWidth: selectedInterview ? '600px' : '500px' }}>
+            <button className="auth-close" onClick={() => setShowHistory(false)}>✕</button>
+            
+            {selectedInterview ? (
+              <>
+                <div className="fh" style={{ marginBottom: '16px' }}>
+                  <div className="ftt">
+                    <button className="history-back" onClick={() => setSelectedInterview(null)}>← Back</button> 
+                    Session Details
+                  </div>
+                </div>
+
+                {detailsLoading || !selectedInterview.answers ? (
+                   <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--d)' }}><div className="spin" style={{ margin: '0 auto 12px' }}/>Fetching answers...</div>
+                ) : (
+                  <>
+                    <div className="history-detail-header">
+                      <div className="history-role">{selectedInterview.jobRole}</div>
+                      <div className="history-lvl">Score: {selectedInterview.overallScore || 'N/A'}% · {selectedInterview.answers.length} Questions</div>
+                    </div>
+                    
+                    <div className="history-list history-detail-list">
+                      {selectedInterview.answers.map((ans, idx) => (
+                        <div key={idx} className="history-qa-card">
+                          <div className="qa-q"><span>Q{idx+1}:</span> {ans.question}</div>
+                          <div className="qa-a"><span>Your Answer:</span> {ans.answer || "(No answer provided)"}</div>
+                          <div className="qa-f"><span>Payton's Feedback:</span> {ans.feedback}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="fh" style={{ marginBottom: '16px' }}>
+                  <div className="ftt">Interview History</div>
+                  <div className="fdot" />
+                </div>
+                <p className="bdesc" style={{ marginBottom: '24px' }}>Review your past training sessions and scores.</p>
+
+                {historyLoading ? (
+                  <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--d)' }}><div className="spin" style={{ margin: '0 auto 12px' }}/>Loading history...</div>
+                ) : historyData.length === 0 ? (
+                  <div className="history-empty">No interviews taken yet. Time to start training!</div>
+                ) : (
+                  <div className="history-list">
+                    {historyData.map(h => (
+                      <div key={h.id} className="history-item" onClick={() => handleHistoryClick(h.id)}>
+                        <div className="history-item-left">
+                          <div className="history-role">{h.jobRole} <span className="history-lvl">· {h.experienceLevel}</span></div>
+                          <div className="history-date">{h.date} · {h.questionLimit} Questions</div>
+                        </div>
+                        <div className={`history-score ${h.score >= 60 ? 'pass' : 'fail'}`}>
+                          {h.score ? `${h.score}%` : 'N/A'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+
       <div id="main-wrap">
 
         {/* Noise overlay */}
         <div id="noise" />
-
-        {/* ═══════════════════════════════════
-            AUTH MODAL
-        ═══════════════════════════════════ */}
-        {authMode && (
-          <div className="auth-overlay">
-            <div className="auth-backdrop" onClick={() => { setAuthMode(null); setShowOtpInput(false); }} />
-            <div className="bc form-card auth-card">
-              <button className="auth-close" onClick={() => { setAuthMode(null); setShowOtpInput(false); }}>✕</button>
-              <DoodleCorner style={{ position:"absolute", top:14, left:14, opacity:0.4, pointerEvents:"none" }} />
-              <DoodleCorner style={{ position:"absolute", bottom:14, right:14, opacity:0.4, transform:"rotate(180deg)", pointerEvents:"none" }} />
-              
-              <div className="fh">
-                <div className="ftt">{authMode === 'login' ? 'Welcome Back' : 'Create Account'}</div>
-                <div className="fdot" />
-              </div>
-
-              <form onSubmit={handleAuthSubmit}>
-                {showOtpInput ? (
-                  <div className="field field-full">
-                    <label>Verification Code</label>
-                    <input
-                      type="text"
-                      maxLength="6"
-                      placeholder="000000"
-                      style={{ textAlign: 'center', fontSize: '28px', letterSpacing: '8px', fontFamily: 'monospace' }}
-                      value={otp}
-                      onChange={e => setOtp(e.target.value)}
-                      required
-                    />
-                    <p className="bdesc" style={{ marginTop: '12px', textAlign: 'center' }}>
-                      Enter the 6-digit code sent to <br/> <strong style={{ color: 'var(--w)' }}>{authEmail}</strong>
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {authMode === 'register' && (
-                      <div className="field field-full">
-                        <label>Full Name</label>
-                        <input type="text" placeholder="Jane Doe" value={authName} onChange={e => setAuthName(e.target.value)} required />
-                      </div>
-                    )}
-                    <div className="field field-full">
-                      <label>Email Address</label>
-                      <input type="email" placeholder="name@company.com" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required />
-                    </div>
-                    <div className="field field-full">
-                      <label>Password</label>
-                      <input type="password" placeholder="••••••••" value={authPass} onChange={e => setAuthPass(e.target.value)} required />
-                    </div>
-                  </>
-                )}
-
-                <div className="divider" />
-                
-                <button type="submit" className="btn-go" disabled={authLoading}>
-                  <div className="btn-in">
-                    {authLoading ? (
-                      <><div className="spin" />Processing...</>
-                    ) : (
-                      <>{showOtpInput ? 'Verify Code →' : (authMode === 'login' ? 'Sign In →' : 'Send Code →')}</>
-                    )}
-                  </div>
-                </button>
-              </form>
-
-              {!showOtpInput && (
-                <button type="button" className="auth-switch" onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}>
-                  {authMode === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════
-            HISTORY MODAL
-        ═══════════════════════════════════ */}
-        {showHistory && (
-          <div className="auth-overlay">
-            <div className="auth-backdrop" onClick={() => setShowHistory(false)} />
-            <div className="bc form-card auth-card history-card" style={{ maxWidth: selectedInterview ? '600px' : '500px' }}>
-              <button className="auth-close" onClick={() => setShowHistory(false)}>✕</button>
-              
-              {selectedInterview ? (
-                <>
-                  <div className="fh" style={{ marginBottom: '16px' }}>
-                    <div className="ftt">
-                      <button className="history-back" onClick={() => setSelectedInterview(null)}>← Back</button> 
-                      Session Details
-                    </div>
-                  </div>
-
-                  {detailsLoading || !selectedInterview.answers ? (
-                     <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--d)' }}><div className="spin" style={{ margin: '0 auto 12px' }}/>Fetching answers...</div>
-                  ) : (
-                    <>
-                      <div className="history-detail-header">
-                        <div className="history-role">{selectedInterview.jobRole}</div>
-                        <div className="history-lvl">Score: {selectedInterview.overallScore || 'N/A'}% · {selectedInterview.answers.length} Questions</div>
-                      </div>
-                      
-                      <div className="history-list history-detail-list">
-                        {selectedInterview.answers.map((ans, idx) => (
-                          <div key={idx} className="history-qa-card">
-                            <div className="qa-q"><span>Q{idx+1}:</span> {ans.question}</div>
-                            <div className="qa-a"><span>Your Answer:</span> {ans.answer || "(No answer provided)"}</div>
-                            <div className="qa-f"><span>Payton's Feedback:</span> {ans.feedback}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="fh" style={{ marginBottom: '16px' }}>
-                    <div className="ftt">Interview History</div>
-                    <div className="fdot" />
-                  </div>
-                  <p className="bdesc" style={{ marginBottom: '24px' }}>Review your past training sessions and scores.</p>
-
-                  {historyLoading ? (
-                    <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--d)' }}><div className="spin" style={{ margin: '0 auto 12px' }}/>Loading history...</div>
-                  ) : historyData.length === 0 ? (
-                    <div className="history-empty">No interviews taken yet. Time to start training!</div>
-                  ) : (
-                    <div className="history-list">
-                      {historyData.map(h => (
-                        <div key={h.id} className="history-item" onClick={() => handleHistoryClick(h.id)}>
-                          <div className="history-item-left">
-                            <div className="history-role">{h.jobRole} <span className="history-lvl">· {h.experienceLevel}</span></div>
-                            <div className="history-date">{h.date} · {h.questionLimit} Questions</div>
-                          </div>
-                          <div className={`history-score ${h.score >= 60 ? 'pass' : 'fail'}`}>
-                            {h.score ? `${h.score}%` : 'N/A'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* ═══════════════════════════════════
             NEW HERO — CANVAS SEQUENCE 
