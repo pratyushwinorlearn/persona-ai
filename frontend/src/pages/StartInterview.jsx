@@ -148,13 +148,11 @@ export default function StartInterview({ onStart }) {
 
   const wrapRef      = useRef(null);
   const secRefs      = useRef([]);
-  const cursorRef    = useRef(null);
-  const cursorDotRef = useRef(null);
   const spotlightRef = useRef(null);
   
   // Canvas Sequence Refs
   const canvasRef = useRef(null);
-  const FRAME_COUNT = 147; // Adjusted to exactly 147 frames to prevent black screen
+  const FRAME_COUNT = 147; 
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -168,22 +166,27 @@ export default function StartInterview({ onStart }) {
     const ctxGSAP = gsap.context(() => {
       ScrollTrigger.defaults({ scroller });
 
-      // ── CANVAS IMAGE SEQUENCE LOGIC ─────────────────────────────────
+      // ── OPTIMIZED CANVAS IMAGE SEQUENCE LOGIC ─────────────────────────────────
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
       
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
+      let resizeTimeout;
       window.addEventListener("resize", () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        render(images[playhead.frame]);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          render(images[Math.round(playhead.frame)]);
+        }, 100);
       });
 
       const images = [];
       const playhead = { frame: 0 };
 
+      // Preload images
       for (let i = 0; i < FRAME_COUNT; i++) {
         const img = new Image();
         img.src = `/sequence/ezgif-frame-${String(i + 1).padStart(3, "0")}.jpg`;
@@ -199,6 +202,8 @@ export default function StartInterview({ onStart }) {
         const centerShift_y = (canvas.height - img.height * ratio) / 2;
         
         context.clearRect(0, 0, canvas.width, canvas.height);
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
         context.drawImage(
           img, 0, 0, img.width, img.height,
           centerShift_x, centerShift_y, img.width * ratio, img.height * ratio
@@ -209,20 +214,23 @@ export default function StartInterview({ onStart }) {
 
       gsap.to(playhead, {
         frame: FRAME_COUNT - 1,
-        snap: "frame",
         ease: "none",
         scrollTrigger: {
           trigger: "#hero-container",
           scroller: scroller,
           start: "top top",
-          end: "+=1500", // Shortened duration to match 147 frames
+          end: "+=1500", 
           pin: true,
-          scrub: 0.1, // Reduced scrub slightly for snappier, lag-free scrolling
+          pinType: "transform", // Crucial fix for lag in custom scroll containers
+          scrub: 0.5, // Smoother scrubbing
         },
-        onUpdate: () => render(images[playhead.frame])
+        onUpdate: () => {
+          const frameIndex = Math.max(0, Math.min(FRAME_COUNT - 1, Math.round(playhead.frame)));
+          render(images[frameIndex]);
+        }
       });
 
-      // Cursor spotlight
+      // Cursor spotlight (background highlight effect)
       const spotlight = spotlightRef.current;
       const onMouseMove = (e) => {
         if (spotlight) {
@@ -244,7 +252,7 @@ export default function StartInterview({ onStart }) {
         });
       });
 
-      // Optimized Sticky Nav Update (Removes laggy backdrop-filter recalculation)
+      // Optimized Sticky Nav Update
       ScrollTrigger.create({
         trigger: "#main-wrap", scroller, start: "top top", end: "+=600", scrub: true,
         onUpdate: self => {
@@ -256,6 +264,7 @@ export default function StartInterview({ onStart }) {
         },
       });
 
+      // (Rest of the GSAP animations remain the same)
       gsap.utils.toArray(".sec-hl").forEach(el => {
         el.querySelectorAll(".hw").forEach(word => {
           const text = word.textContent;
@@ -279,7 +288,7 @@ export default function StartInterview({ onStart }) {
         gsap.fromTo(el, { x: -55, opacity: 0 }, {
           x: 0, opacity: 1,
           scrollTrigger: {
-            trigger: el, scroller, start: "top 88%", end: "top 60%", scrub: 0.5,
+            trigger: el, sc scroller, start: "top 88%", end: "top 60%", scrub: 0.5,
             onEnter: () => setTimeout(() => scrambleText(el.childNodes[0] || el, original, 800), 100),
           },
         });
@@ -359,7 +368,7 @@ export default function StartInterview({ onStart }) {
       });
 
       gsap.utils.toArray(".bimg").forEach(img => {
-        gsap.fromTo(img, { y: -28 }, { y: 28, ease: "none", scrollTrigger: { trigger: img.parentElement, scroller, start: "top bottom", end: "bottom top", scrub: true } });
+        gsap.fromTo(img, { y: -28 }, { y: 28, ease: "none", scrollTrigger: { trigger: img.parentElement, sc scroller, start: "top bottom", end: "bottom top", scrub: true } });
       });
 
       gsap.fromTo(".mq-wrap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, scrollTrigger: { trigger: ".mq-wrap", scroller, start: "top 86%", toggleActions: "play none none none" } });
@@ -437,63 +446,10 @@ export default function StartInterview({ onStart }) {
 
     }, wrapRef);
 
-    /* ══════════════════════════════════════════════
-       CUSTOM CURSOR — magnetic + scale
-    ══════════════════════════════════════════════ */
-    const cursor    = cursorRef.current;
-    const cursorDot = cursorDotRef.current;
-    const wrap      = wrapRef.current;
-
-    if (!cursor || !cursorDot) return () => ctxGSAP.revert();
-
-    let mouseX = 0, mouseY = 0;
-    let posX = 0, posY = 0;
-    let rafId = null;
-
-    const onMove = (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      gsap.to(cursorDot, { x: mouseX, y: mouseY, duration: 0.08, ease: "none" });
-    };
-
-    const lerp = () => {
-      posX += (mouseX - posX) * 0.1;
-      posY += (mouseY - posY) * 0.1;
-      gsap.set(cursor, { x: posX - 18, y: posY - 18 });
-      rafId = requestAnimationFrame(lerp);
-    };
-
-    const onEnterBtn = (e) => {
-      gsap.to(cursor, { scale: 2.4, opacity: 0.35, duration: 0.3, ease: "power2.out" });
-      gsap.to(cursorDot, { scale: 0, duration: 0.2 });
-      const rect = e.currentTarget.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top  + rect.height / 2;
-      gsap.to(cursor, { x: cx - 18, y: cy - 18, duration: 0.35, ease: "power3.out", overwrite: "auto" });
-    };
-    const onLeaveBtn = () => {
-      gsap.to(cursor, { scale: 1, opacity: 0.7, duration: 0.4, ease: "elastic.out(1, 0.5)" });
-      gsap.to(cursorDot, { scale: 1, duration: 0.25 });
-    };
-
-    wrap.addEventListener("mousemove", onMove);
-    rafId = requestAnimationFrame(lerp);
-
-    const btns = document.querySelectorAll("button, a, .chip, .rcri, .bc, .auth-switch, .history-item");
-    btns.forEach(el => {
-      el.addEventListener("mouseenter", onEnterBtn);
-      el.addEventListener("mouseleave", onLeaveBtn);
-    });
-
     return () => {
       ctxGSAP.revert();
-      cancelAnimationFrame(rafId);
-      wrap.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", () => {});
-      btns.forEach(el => {
-        el.removeEventListener("mouseenter", onEnterBtn);
-        el.removeEventListener("mouseleave", onLeaveBtn);
-      });
+      window.removeEventListener("mousemove", () => {});
     };
   }, []);
 
@@ -789,11 +745,8 @@ export default function StartInterview({ onStart }) {
           </div>
         )}
 
-        <div id="cursor-ring" ref={cursorRef} />
-        <div id="cursor-dot"  ref={cursorDotRef} />
-
         {/* ═══════════════════════════════════
-            NEW HERO — CANVAS SEQUENCE (CLEANED)
+            NEW HERO — CANVAS SEQUENCE
         ═══════════════════════════════════ */}
         <div id="hero-container">
           <canvas ref={canvasRef} id="hero-canvas" />
@@ -1273,7 +1226,6 @@ const CSS = `
   background:var(--bg);
   font-family:'Bricolage Grotesque',sans-serif;
   color:var(--w);
-  cursor:none;
   -webkit-font-smoothing:antialiased;
 }
 
@@ -1296,26 +1248,6 @@ const CSS = `
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size:180px 180px;
   mix-blend-mode:overlay;
-}
-
-/* ── CURSOR ── */
-#cursor-ring {
-  position:fixed; top:0; left:0;
-  width:36px; height:36px;
-  border:1px solid rgba(255,255,255,0.55);
-  border-radius:50%;
-  pointer-events:none; z-index:99999;
-  will-change:transform;
-  transition:opacity 0.3s;
-}
-#cursor-dot {
-  position:fixed; top:0; left:0;
-  width:4px; height:4px;
-  background:var(--a);
-  border-radius:50%;
-  pointer-events:none; z-index:99999;
-  will-change:transform;
-  margin:-2px 0 0 -2px;
 }
 
 /* ── CARD SPOTLIGHT ── */
@@ -1394,7 +1326,7 @@ const CSS = `
 #pill-nav { position:absolute; top:26px; left:50%; transform:translateX(-50%); display:flex; align-items:center; background:rgba(0,0,0,0.55); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,0.1); border-radius:50px; padding:7px 8px 7px 22px; z-index:50; white-space:nowrap; }
 #pill-logo { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:5px; color:rgba(255,255,255,0.88); margin-right:18px; }
 #pill-links { display:flex; gap:2px; }
-.pl { background:none; border:none; cursor:none; padding:5px 13px; border-radius:40px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.45); transition:all 0.2s; font-family:'Bricolage Grotesque',sans-serif; }
+.pl { background:none; border:none; cursor:pointer; padding:5px 13px; border-radius:40px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.45); transition:all 0.2s; font-family:'Bricolage Grotesque',sans-serif; }
 .pl:hover { color:rgba(255,255,255,0.88); background:rgba(255,255,255,0.07); }
 .pl-on { color:#000!important; background:#fff!important; }
 
@@ -1415,10 +1347,10 @@ const CSS = `
 }
 #sn-logo { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:5px; color:rgba(255,255,255,0.78); }
 #sn-links { display:flex; }
-.snl { background:none; border:none; cursor:none; padding:6px 16px; font-size:12px; font-weight:500; color:var(--d); transition:color 0.2s; font-family:'Bricolage Grotesque',sans-serif; border-radius:4px; }
+.snl { background:none; border:none; cursor:pointer; padding:6px 16px; font-size:12px; font-weight:500; color:var(--d); transition:color 0.2s; font-family:'Bricolage Grotesque',sans-serif; border-radius:4px; }
 .snl:hover { color:rgba(255,255,255,0.85); }
 .snl-on { color:var(--w)!important; background:rgba(255,255,255,0.07); }
-#sn-cta { background:var(--w); color:var(--bg); border:none; padding:7px 18px; border-radius:6px; font-size:12px; font-weight:700; cursor:none; transition:background 0.2s,transform 0.15s; font-family:'Bricolage Grotesque',sans-serif; position:relative; overflow:hidden; }
+#sn-cta { background:var(--w); color:var(--bg); border:none; padding:7px 18px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:background 0.2s,transform 0.15s; font-family:'Bricolage Grotesque',sans-serif; position:relative; overflow:hidden; }
 #sn-cta::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); transform:translateX(-100%); transition:transform 0.4s; }
 #sn-cta:hover::after { transform:translateX(100%); }
 #sn-cta:hover { background:var(--a); transform:translateY(-1px); }
@@ -1473,7 +1405,7 @@ const CSS = `
   font-size:11px; font-weight:600; color:var(--m);
   background:rgba(255,255,255,0.04); border:1px solid var(--bdr);
   padding:6px 13px; border-radius:40px;
-  transition:all 0.25s; cursor:none;
+  transition:all 0.25s; cursor:pointer;
   will-change:transform,opacity;
 }
 .chip:hover { background:rgba(255,255,255,0.1); color:var(--w); border-color:rgba(125,249,194,0.35); transform:translateY(-2px) scale(1.04); }
@@ -1512,7 +1444,7 @@ const CSS = `
 .rcat:hover { background:#141414; }
 .rct { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; color:var(--w); margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--bdr); }
 .rcr { display:flex; flex-direction:column; gap:8px; }
-.rcri { font-size:13px; font-weight:400; color:var(--m); padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); cursor:none; transition:color 0.2s,padding-left 0.2s; will-change:transform,opacity; }
+.rcri { font-size:13px; font-weight:400; color:var(--m); padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:color 0.2s,padding-left 0.2s; will-change:transform,opacity; }
 .rcri:hover { color:var(--w); padding-left:6px; }
 .rbanner { display:flex; align-items:center; gap:28px; background:var(--c1); border:1px solid var(--bdr); border-radius:12px; padding:32px 36px; will-change:transform,opacity,clip-path; position:relative; overflow:hidden; }
 .rb-n { font-family:'Bebas Neue',sans-serif; font-size:68px; color:var(--a); line-height:1; flex-shrink:0; position:relative; z-index:2; will-change:transform,opacity,filter; }
@@ -1542,14 +1474,14 @@ const CSS = `
 .field-full { margin-bottom:13px; }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
 .field label { font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--d); }
-.field input,.field select { background:rgba(255,255,255,0.04); border:1px solid var(--bdr); border-radius:8px; padding:11px 15px; font-size:14px; font-family:'Bricolage Grotesque',sans-serif; font-weight:400; color:var(--w); outline:none; transition:border-color 0.2s,box-shadow 0.2s,background 0.2s; appearance:none; -webkit-appearance:none; cursor:none; width:100%; }
+.field input,.field select { background:rgba(255,255,255,0.04); border:1px solid var(--bdr); border-radius:8px; padding:11px 15px; font-size:14px; font-family:'Bricolage Grotesque',sans-serif; font-weight:400; color:var(--w); outline:none; transition:border-color 0.2s,box-shadow 0.2s,background 0.2s; appearance:none; -webkit-appearance:none; width:100%; }
 .field input::placeholder { color:rgba(255,255,255,0.18); }
 .field input:focus,.field select:focus { border-color:rgba(125,249,194,0.42); background:rgba(125,249,194,0.03); box-shadow:0 0 0 3px rgba(125,249,194,0.05); }
 .field select option { background:#111; color:var(--w); }
 .sel-wrap { position:relative; }
 .sel-wrap::after { content:'▾'; position:absolute; right:13px; top:50%; transform:translateY(-50%); color:var(--d); pointer-events:none; font-size:11px; }
 .divider { height:1px; background:var(--bdr); margin:18px 0; }
-.btn-go { width:100%; padding:15px; border:none; border-radius:9px; font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:4px; cursor:none; transition:background 0.2s,transform 0.2s,box-shadow 0.2s; background:var(--w); color:var(--bg); box-shadow:0 4px 28px rgba(255,255,255,0.1); position:relative; overflow:hidden; }
+.btn-go { width:100%; padding:15px; border:none; border-radius:9px; font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:4px; cursor:pointer; transition:background 0.2s,transform 0.2s,box-shadow 0.2s; background:var(--w); color:var(--bg); box-shadow:0 4px 28px rgba(255,255,255,0.1); position:relative; overflow:hidden; }
 .btn-go::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); transform:translateX(-100%); transition:transform 0.5s; }
 .btn-go:hover:not(:disabled)::after { transform:translateX(100%); }
 .btn-go:hover:not(:disabled) { background:var(--a); transform:translateY(-2px); box-shadow:0 8px 38px rgba(125,249,194,0.3); }
@@ -1570,7 +1502,6 @@ const CSS = `
 .auth-backdrop {
   position: absolute; inset: 0;
   background: rgba(0,0,0,0.7); backdrop-filter: blur(12px);
-  cursor: none;
 }
 .auth-card {
   position: relative; z-index: 2; width: 100%; max-width: 420px;
@@ -1586,12 +1517,12 @@ const CSS = `
 .auth-close {
   position: absolute; top: 20px; right: 20px;
   background: none; border: none; color: var(--d);
-  cursor: none; font-size: 18px; font-family: monospace;
+  cursor: pointer; font-size: 18px; font-family: monospace;
   transition: color 0.2s; z-index: 10;
 }
 .auth-close:hover { color: var(--w); }
 .auth-switch {
-  cursor: none; background: none; border: none;
+  cursor: pointer; background: none; border: none;
   color: var(--a); font-size: 13px; font-family: 'Bricolage Grotesque', sans-serif;
   margin-top: 20px; width: 100%; text-align: center;
   transition: color 0.2s, opacity 0.2s;
@@ -1607,7 +1538,7 @@ const CSS = `
   display: flex; justify-content: space-between; align-items: center;
   background: rgba(255,255,255,0.03); border: 1px solid var(--bdr);
   padding: 16px; border-radius: 8px; transition: background 0.2s, border-color 0.2s;
-  cursor: none;
+  cursor: pointer;
 }
 .history-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
 .history-item-left { display: flex; flex-direction: column; gap: 4px; }
@@ -1625,7 +1556,7 @@ const CSS = `
 /* Detailed History View Styles */
 .history-back {
   background: none; border: 1px solid var(--bdr); color: var(--d);
-  padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: none;
+  padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;
   font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;
   transition: all 0.2s; letter-spacing: 1px;
 }
@@ -1643,7 +1574,7 @@ const CSS = `
 .ft-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; }
 .ft-logo { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:6px; color:rgba(255,255,255,0.3); }
 .ft-links { display:flex; gap:26px; }
-.ftl { font-size:12px; font-weight:500; color:var(--d); cursor:none; transition:color 0.2s; }
+.ftl { font-size:12px; font-weight:500; color:var(--d); cursor:pointer; transition:color 0.2s; }
 .ftl:hover { color:var(--w); }
 .ft-bot { display:flex; justify-content:space-between; }
 .ft-copy,.ft-tag { font-size:12px; color:rgba(255,255,255,0.16); }
