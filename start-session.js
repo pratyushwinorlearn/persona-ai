@@ -1,58 +1,107 @@
 import { spawn } from "child_process";
 import fetch from "node-fetch";
+import { readFileSync, writeFileSync } from "fs";
 
 const BACKEND = "https://persona-ai-mmhb.onrender.com/api/interview";
+const ENV_PATH = "./backend/.env";
 
-// We use Windows built-in SSH to tunnel via localhost.run (Zero warning screens!)
-// Forcing 127.0.0.1 prevents the IPv6 bugs that Cloudflare had.
-const tunnel = spawn("ssh", [
-  "-R", "80:127.0.0.1:8081", 
-  "nokey@localhost.run", 
-  "-o", "StrictHostKeyChecking=no" // Auto-accepts the SSH key
+// Tunnel 1: Pixel Streaming (port 8081)
+const psTunnel = spawn("ssh", [
+  "-R", "80:127.0.0.1:8081",
+  "nokey@localhost.run",
+  "-o", "StrictHostKeyChecking=no"
 ]);
 
-let urlPushed = false;
+// Tunnel 2: Local backend audio (port 3001)
+const backendTunnel = spawn("ssh", [
+  "-R", "80:127.0.0.1:3001",
+  "nokey@localhost.run",
+  "-o", "StrictHostKeyChecking=no"
+]);
 
-const handleOutput = async (data) => {
-  const str = data.toString();
-  
-  // Print the raw SSH logs so you can see it connecting
-  console.log(str.trim()); 
-  
-  // localhost.run URLs look like: https://something-random.lhr.life
-  const match = str.match(/(https:\/\/[a-zA-Z0-9-]+\.lhr\.life)/);
-  
-  if (match && !urlPushed) {
-    urlPushed = true; // Prevent pushing multiple times
-    const url = match[1];
-    console.log("\n✅ SSH Tunnel Public URL:", url);
-    
-    try {
-      const response = await fetch(`${BACKEND}/set-ps-url`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url })
-      });
+let psTunnelUrl = null;
+let backendTunnelUrl = null;
+let psUrlPushed = false;
+let backendUrlPushed = false;
 
-      if (!response.ok) {
-        const errorText = await response.text(); 
-        throw new Error(`Server status ${response.status} - ${errorText}`);
-      }
-
-      console.log("✅ URL successfully pushed to Railway backend!\n");
-    } catch (e) {
-      console.error("❌ Failed to push URL to backend:", e.message);
-      urlPushed = false; // Allow it to try again if it failed
+const updateBackendUrl = (url) => {
+  try {
+    let env = readFileSync(ENV_PATH, "utf8");
+    if (env.match(/^BACKEND_URL=.*/m)) {
+      env = env.replace(/^BACKEND_URL=.*/m, `BACKEND_URL=${url}`);
+    } else {
+      env += `\nBACKEND_URL=${url}`;
     }
+    writeFileSync(ENV_PATH, env);
+    console.log("✅ Updated BACKEND_URL in .env to:", url);
+  } catch (e) {
+    console.error("❌ Failed to update .env:", e.message);
   }
 };
 
-// SSH sometimes sends the URL through the standard output, sometimes through errors
-tunnel.stdout.on("data", handleOutput);
-tunnel.stderr.on("data", handleOutput);
+const pushUrlsToRender = async () => {
+  if (!psTunnelUrl || !backendTunnelUrl) return; // Wait for both URLs
 
-tunnel.on("close", (code) => {
-  console.log("SSH Tunnel exited with code", code);
-});
+  try {
+    // Push PS URL (for Payton streaming)
+    const psResponse = await fetch(`${BACKEND}/set-ps-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: psTunnelUrl })
+    });
+    if (!psResponse.ok) throw new Error(await psResponse.text());
+    console.log("✅ Pixel Streaming URL pushed to Render!\n");
 
-console.log("🚀 Starting SSH Tunnel to localhost.run on port 8081...");
+    // Push backend audio URL
+    const backendResponse = await fetch(`${BACKEND}/set-backend-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: backendTunnelUrl })
+    });
+    if (!backendResponse.ok) throw new Error(await backendResponse.text());
+    console.log("✅ Backend audio URL pushed to Render!\n");
+
+    console.log("⚠️  Now restart your local backend: node backend/src/index.js\n");
+  } catch (e) {
+    console.error("❌ Failed to push URLs to Render:", e.message);
+  }
+};
+
+const handlePsOutput = async (data) => {
+  const str = data.toString();
+  console.log("[PS Tunnel]", str.trim());
+
+  const match = str.match(/(https:\/\/[a-zA-Z0-9-]+\.lhr\.life)/);
+  if (match && !psUrlPushed) {
+    psUrlPushed = true;
+    psTunnelUrl = match[1];
+    console.log("\n✅ Pixel Streaming Tunnel URL:", psTunnelUrl);
+    await pushUrlsToRender();
+  }
+};
+
+const handleBackendOutput = async (data) => {
+  const str = data.toString();
+  console.log("[Backend Tunnel]", str.trim());
+
+  const match = str.match(/(https:\/\/[a-zA-Z0-9-]+\.lhr\.life)/);
+  if (match && !backendUrlPushed) {
+    backendUrlPushed = true;
+    backendTunnelUrl = match[1];
+    console.log("\n✅ Backend Audio Tunnel URL:", backendTunnelUrl);
+    updateBackendUrl(backendTunnelUrl);
+    await pushUrlsToRender();
+  }
+};
+
+psTunnel.stdout.on("data", handlePsOutput);
+psTunnel.stderr.on("data", handlePsOutput);
+psTunnel.on("close", (code) => console.log("PS Tunnel exited with code", code));
+
+backendTunnel.stdout.on("data", handleBackendOutput);
+backendTunnel.stderr.on("data", handleBackendOutput);
+backendTunnel.on("close", (code) => console.log("Backend Tunnel exited with code", code));
+
+console.log("🚀 Starting SSH Tunnels...");
+console.log("   → Pixel Streaming on port 8081");
+console.log("   → Local Backend on port 3001");

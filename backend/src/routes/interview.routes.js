@@ -1,5 +1,5 @@
 import express from "express";
-import jwt from "jsonwebtoken"; // 🔴 Added JWT import
+import jwt from "jsonwebtoken";
 import {
   startInterview,
   submitAnswer,
@@ -13,6 +13,7 @@ import prisma from "../db/prisma.js";
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_ai_interviewer_key";
 
 let pendingAudioUrl = null;
+let pixelStreamingUrl = "http://localhost";
 const router = express.Router();
 
 // START
@@ -23,7 +24,6 @@ router.post("/start", async (req, res) => {
       return res.status(400).json({ error: "Missing fields" });
     }
 
-    // 🔴 1. Extract user ID from the token sent by the frontend
     let userId = null;
     const authHeader = req.headers.authorization;
     if (authHeader) {
@@ -36,10 +36,8 @@ router.post("/start", async (req, res) => {
       }
     }
 
-    // 2. Start the interview using your existing service
     const result = await startInterview(jobRole, experienceLevel, questionLimit);
 
-    // 🔴 3. Link the user to this newly created interview in the DB!
     if (userId && result.interviewId) {
       await prisma.interviewHistory.update({
         where: { id: result.interviewId },
@@ -61,7 +59,7 @@ router.post("/start", async (req, res) => {
   }
 });
 
-// ANSWER — evaluate only
+// ANSWER
 router.post("/answer", async (req, res) => {
   try {
     const { interviewId, userAnswer } = req.body;
@@ -74,12 +72,11 @@ router.post("/answer", async (req, res) => {
   }
 });
 
-// REACT — reaction audio only
+// REACT
 router.post("/react", async (req, res) => {
   try {
     const { interviewId, isCorrect, userAnswer, introCompleted } = req.body;
 
-    // Check if this was the last question
     const interview = await prisma.interviewHistory.findUnique({
       where: { id: interviewId }
     });
@@ -155,12 +152,8 @@ router.post("/set-audio", (req, res) => {
 router.get("/pending-audio", (req, res) => {
   res.json({ url: pendingAudioUrl });
 });
-// Variable to store the public Ngrok URL in memory
-// --- PIXEL STREAMING CONFIG ---
-// Keep this at the top level of the file (outside the routes)
-let pixelStreamingUrl = "http://localhost";
 
-// 1. POST: start-session.js calls this to PUSH the ngrok link
+// PIXEL STREAMING URL
 router.post("/set-ps-url", (req, res) => {
   const { url } = req.body;
   if (url) {
@@ -171,11 +164,20 @@ router.post("/set-ps-url", (req, res) => {
   res.status(400).json({ error: "No URL provided" });
 });
 
-// 2. GET: Frontend calls this to FETCH the link
 router.get("/ps-url", (req, res) => {
   console.log("📡 Sending PS URL to client:", pixelStreamingUrl);
   res.json({ url: pixelStreamingUrl });
 });
 
+// BACKEND AUDIO URL — injected by start-session.js
+router.post("/set-backend-url", (req, res) => {
+  const { url } = req.body;
+  if (url) {
+    process.env.BACKEND_URL = url;
+    console.log("✅ BACKEND_URL INJECTED INTO PROCESS:", url);
+    return res.json({ ok: true });
+  }
+  res.status(400).json({ error: "No URL provided" });
+});
 
 export default router;

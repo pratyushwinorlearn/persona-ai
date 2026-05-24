@@ -34,8 +34,8 @@ export async function generateSpeech(text, interviewId) {
   // 3. Generate lipsync data (OS-Aware Fix)
   const isWindows = process.platform === "win32";
   const rhubarbPath = isWindows 
-    ? path.resolve("./rhubarb/rhubarb.exe") // Local Windows path
-    : "/app/rhubarb_linux/rhubarb";         // Production Railway path
+    ? path.resolve("./rhubarb/rhubarb.exe")
+    : "/app/rhubarb_linux/rhubarb";
   
   const lipSyncPath = path.join(audioDir, `${fileName}.json`);
   execSync(`"${rhubarbPath}" -f json -o "${lipSyncPath}" "${finalPath}" -r phonetic --extendedShapes GHX`);
@@ -45,9 +45,9 @@ export async function generateSpeech(text, interviewId) {
   const lipSyncTimes = lipSyncRaw.mouthCues.map(cue => cue.start);
   const lipSyncVisemes = lipSyncRaw.mouthCues.map(cue => cue.value);
 
-  // 5. Build dynamic URLs (Production URL Fix)
-  // Make sure to add BACKEND_URL to your Railway variables!
+  // 5. Build dynamic URLs
   const baseUrl = process.env.BACKEND_URL || "http://localhost:3001";
+  console.log("🔍 BACKEND_URL:", baseUrl); // DEBUG LINE
   const url = `${baseUrl}/audio/${fileName}.wav`;
   const lipSyncUrl = `${baseUrl}/audio/${fileName}.json`;
 
