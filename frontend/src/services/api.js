@@ -1,5 +1,5 @@
-const API = "https://persona-ai-production-ac95.up.railway.app/api/interview";
-const AUTH = "https://persona-ai-production-ac95.up.railway.app/api/auth";
+const API = "https://persona-ai-mmhb.onrender.com/api/interview";
+const AUTH = "https://persona-ai-mmhb.onrender.com/api/auth";
 
 async function request(url, body) {
   const headers = { "Content-Type": "application/json" };

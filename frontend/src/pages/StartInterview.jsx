@@ -461,7 +461,7 @@ export default function StartInterview({ onStart }) {
 
     try {
       if (showOtpInput) {
-        const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/verify-otp`, {
+        const res = await fetch(`https://persona-ai-mmhb.onrender.com/api/auth/verify-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail, otp })
@@ -481,7 +481,7 @@ export default function StartInterview({ onStart }) {
       const payload = { email: authEmail, password: authPass };
       if (authMode === 'register') payload.name = authName;
 
-      const res = await fetch(`https://persona-ai-production-ac95.up.railway.app${endpoint}`, {
+      const res = await fetch(`https://persona-ai-mmhb.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -513,7 +513,7 @@ export default function StartInterview({ onStart }) {
     setSelectedInterview(null); 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/history`, {
+      const res = await fetch(`https://persona-ai-mmhb.onrender.com/api/auth/history`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if(res.ok) {
@@ -534,7 +534,7 @@ export default function StartInterview({ onStart }) {
     setSelectedInterview({ id }); 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`https://persona-ai-production-ac95.up.railway.app/api/auth/history/${id}`, {
+      const res = await fetch(`https://persona-ai-mmhb.onrender.com/api/auth/history/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if(res.ok) {
