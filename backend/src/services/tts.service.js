@@ -47,7 +47,7 @@ export async function generateSpeech(text, interviewId) {
 
   // 5. Build dynamic URLs (Production URL Fix)
   // Make sure to add BACKEND_URL to your Railway variables!
-  const baseUrl = process.env.BACKEND_URL || "http://localhost:8000";
+  const baseUrl = process.env.BACKEND_URL || "http://localhost:3001";
   const url = `${baseUrl}/audio/${fileName}.wav`;
   const lipSyncUrl = `${baseUrl}/audio/${fileName}.json`;
 
