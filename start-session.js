@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import fetch from "node-fetch";
 
-const BACKEND = "https://persona-ai-production-ac95.up.railway.app/api/interview";
+const BACKEND = "https://persona-ai-mmhb.onrender.com/api/interview";
 
 // We use Windows built-in SSH to tunnel via localhost.run (Zero warning screens!)
 // Forcing 127.0.0.1 prevents the IPv6 bugs that Cloudflare had.
